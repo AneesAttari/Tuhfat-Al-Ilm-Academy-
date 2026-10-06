@@ -1,0 +1,11 @@
+name = "tuhfat-al-ilm-academy"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "dist"
+
+# Cloudflare D1 Database Binding
+# Create your database in Cloudflare with: npx wrangler d1 create tuhfat_db
+# Then replace the database_id below with your D1 database ID.
+[[d1_databases]]
+binding = "DB"
+database_name = "tuhfat_db"
+database_id = "YOUR_CLOUDFLARE_D1_DATABASE_ID"

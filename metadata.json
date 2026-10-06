@@ -1,0 +1,6 @@
+{
+  "name": "Tuhfat Al-Ilm Academy",
+  "description": "International Online Islamic Academy providing structured Quran and Islamic education worldwide.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
