@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { PageId, AdminUser, User, Course } from './types';
+import { PageId, AdminUser, User, Course, AdminTab } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { CoursesPage } from './pages/CoursesPage';
 import { CourseDetailPage } from './pages/CourseDetailPage';
+import { TeachersPage } from './pages/TeachersPage';
 import { HowItWorksPage } from './pages/HowItWorksPage';
+import { ResourcesPage } from './pages/ResourcesPage';
 import { FaqPage } from './pages/FaqPage';
 import { ContactPage } from './pages/ContactPage';
+import { HealthPage } from './pages/HealthPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 import { LoginPage } from './pages/LoginPage';
 import { AdminLoginPage } from './admin/AdminLoginPage';
 import { AdminDashboardPage } from './admin/AdminDashboardPage';
@@ -21,9 +25,13 @@ const BASE_PAGE_TITLES: Record<PageId, string> = {
   about: 'Tuhfat Al-Ilm Academy | About Us',
   courses: 'Tuhfat Al-Ilm Academy | Courses',
   'course-detail': 'Tuhfat Al-Ilm Academy | Course Details',
+  teachers: 'Tuhfat Al-Ilm Academy | Our Qualified Teachers',
   'how-it-works': 'Tuhfat Al-Ilm Academy | How It Works',
+  resources: 'Tuhfat Al-Ilm Academy | Learning Resources',
   faq: 'Tuhfat Al-Ilm Academy | FAQ',
   contact: 'Tuhfat Al-Ilm Academy | Contact & Enrollment',
+  health: 'Tuhfat Al-Ilm Academy | System Health Status',
+  'not-found': 'Tuhfat Al-Ilm Academy | Page Not Found',
   login: 'Tuhfat Al-Ilm Academy | Student Sign In',
   register: 'Tuhfat Al-Ilm Academy | Create Account',
   'admin-login': 'Tuhfat Al-Ilm Academy | Admin Portal',
@@ -34,6 +42,7 @@ interface RouteState {
   page: PageId;
   courseSlug?: string;
   courseNameForContact?: string;
+  adminTab?: AdminTab;
 }
 
 const parseRouteFromLocation = (): RouteState => {
@@ -49,13 +58,22 @@ const parseRouteFromLocation = (): RouteState => {
   } else if (hash) {
     if (hash === 'about') return { page: 'about' };
     if (hash === 'courses') return { page: 'courses' };
+    if (hash === 'teachers') return { page: 'teachers' };
     if (hash === 'how-it-works') return { page: 'how-it-works' };
+    if (hash === 'resources') return { page: 'resources' };
     if (hash === 'faq') return { page: 'faq' };
     if (hash === 'contact' || hash === 'enroll') return { page: 'contact' };
+    if (hash === 'health') return { page: 'health' };
     if (hash === 'login' || hash === 'signin') return { page: 'login' };
     if (hash === 'register' || hash === 'signup') return { page: 'register' };
     if (hash === 'admin/login' || hash === 'admin-login') return { page: 'admin-login' };
-    if (hash === 'admin/dashboard' || hash === 'admin-dashboard' || hash === 'admin') return { page: 'admin-dashboard' };
+    if (hash === 'admin/analytics') return { page: 'admin-dashboard', adminTab: 'analytics' };
+    if (hash === 'admin/content') return { page: 'admin-dashboard', adminTab: 'content' };
+    if (hash === 'admin/courses') return { page: 'admin-dashboard', adminTab: 'courses' };
+    if (hash === 'admin/inquiries') return { page: 'admin-dashboard', adminTab: 'inquiries' };
+    if (hash === 'admin/settings') return { page: 'admin-dashboard', adminTab: 'settings' };
+    if (hash === 'admin/students') return { page: 'admin-dashboard', adminTab: 'students' };
+    if (hash === 'admin/dashboard' || hash === 'admin-dashboard' || hash === 'admin') return { page: 'admin-dashboard', adminTab: 'overview' };
   }
 
   // Normalize pathname: remove leading & trailing slashes, remove .html
@@ -65,7 +83,7 @@ const parseRouteFromLocation = (): RouteState => {
     .replace(/^\/+|\/+$/g, '')
     .trim();
 
-  // Root URL "/" MUST strictly resolve to HOME
+  // Root URL "/" strictly resolves to HOME
   if (!cleanPath || cleanPath === '' || cleanPath === 'index') {
     return { page: 'home' };
   }
@@ -82,8 +100,26 @@ const parseRouteFromLocation = (): RouteState => {
   if (cleanPath === 'admin/login' || cleanPath === 'admin-login') {
     return { page: 'admin-login' };
   }
-  if (cleanPath === 'admin/dashboard' || cleanPath === 'admin-dashboard' || cleanPath === 'admin') {
-    return { page: 'admin-dashboard' };
+  if (cleanPath === 'admin' || cleanPath === 'admin/dashboard' || cleanPath === 'admin-dashboard') {
+    return { page: 'admin-dashboard', adminTab: 'overview' };
+  }
+  if (cleanPath === 'admin/analytics') {
+    return { page: 'admin-dashboard', adminTab: 'analytics' };
+  }
+  if (cleanPath === 'admin/content') {
+    return { page: 'admin-dashboard', adminTab: 'content' };
+  }
+  if (cleanPath === 'admin/courses') {
+    return { page: 'admin-dashboard', adminTab: 'courses' };
+  }
+  if (cleanPath === 'admin/inquiries') {
+    return { page: 'admin-dashboard', adminTab: 'inquiries' };
+  }
+  if (cleanPath === 'admin/settings') {
+    return { page: 'admin-dashboard', adminTab: 'settings' };
+  }
+  if (cleanPath === 'admin/students') {
+    return { page: 'admin-dashboard', adminTab: 'students' };
   }
 
   // Direct Course Detail routes: /courses/[slug] or /courses/[id]
@@ -98,15 +134,18 @@ const parseRouteFromLocation = (): RouteState => {
     return { page: 'courses' };
   }
 
-  // Top level pages
-  if (cleanPath === 'courses') return { page: 'courses' };
+  // Top level public pages
   if (cleanPath === 'about') return { page: 'about' };
+  if (cleanPath === 'courses') return { page: 'courses' };
+  if (cleanPath === 'teachers') return { page: 'teachers' };
   if (cleanPath === 'how-it-works') return { page: 'how-it-works' };
+  if (cleanPath === 'resources') return { page: 'resources' };
   if (cleanPath === 'faq') return { page: 'faq' };
   if (cleanPath === 'contact' || cleanPath === 'enroll') return { page: 'contact' };
+  if (cleanPath === 'health') return { page: 'health' };
 
-  // Strict fallback to HOME
-  return { page: 'home' };
+  // Strict 404 for any other unrecognized route
+  return { page: 'not-found' };
 };
 
 export default function App() {
@@ -194,8 +233,8 @@ export default function App() {
     }
   }, [route.page, adminUser]);
 
-  const navigateTo = useCallback((page: PageId, courseSlugOrName?: string) => {
-    let nextRoute: RouteState = { page };
+  const navigateTo = useCallback((page: PageId, courseSlugOrName?: string, adminTab?: AdminTab) => {
+    let nextRoute: RouteState = { page, adminTab };
     let targetPath = '/';
 
     if (page === 'home') {
@@ -213,18 +252,27 @@ export default function App() {
     } else if (page === 'courses') {
       targetPath = '/courses';
       nextRoute = { page: 'courses' };
+    } else if (page === 'teachers') {
+      targetPath = '/teachers';
+      nextRoute = { page: 'teachers' };
     } else if (page === 'about') {
       targetPath = '/about';
       nextRoute = { page: 'about' };
     } else if (page === 'how-it-works') {
       targetPath = '/how-it-works';
       nextRoute = { page: 'how-it-works' };
+    } else if (page === 'resources') {
+      targetPath = '/resources';
+      nextRoute = { page: 'resources' };
     } else if (page === 'faq') {
       targetPath = '/faq';
       nextRoute = { page: 'faq' };
     } else if (page === 'contact') {
       targetPath = '/contact';
       nextRoute = { page: 'contact', courseNameForContact: courseSlugOrName };
+    } else if (page === 'health') {
+      targetPath = '/health';
+      nextRoute = { page: 'health' };
     } else if (page === 'login') {
       targetPath = '/login';
       nextRoute = { page: 'login' };
@@ -235,8 +283,12 @@ export default function App() {
       targetPath = '/admin/login';
       nextRoute = { page: 'admin-login' };
     } else if (page === 'admin-dashboard') {
-      targetPath = '/admin/dashboard';
-      nextRoute = { page: 'admin-dashboard' };
+      const tab = adminTab || 'overview';
+      targetPath = tab === 'overview' ? '/admin/dashboard' : `/admin/${tab}`;
+      nextRoute = { page: 'admin-dashboard', adminTab: tab };
+    } else if (page === 'not-found') {
+      targetPath = '/404';
+      nextRoute = { page: 'not-found' };
     }
 
     setRoute(nextRoute);
@@ -310,18 +362,30 @@ export default function App() {
           <CoursesPage onNavigate={navigateTo} />
         )}
 
-        {/* 5. PUBLIC HOW IT WORKS PAGE */}
+        {/* 5. PUBLIC TEACHERS PAGE */}
+        {route.page === 'teachers' && <TeachersPage onNavigate={navigateTo} />}
+
+        {/* 6. PUBLIC HOW IT WORKS PAGE */}
         {route.page === 'how-it-works' && <HowItWorksPage onNavigate={navigateTo} />}
 
-        {/* 6. PUBLIC FAQ PAGE */}
+        {/* 7. PUBLIC LEARNING RESOURCES PAGE */}
+        {route.page === 'resources' && <ResourcesPage onNavigate={navigateTo} />}
+
+        {/* 8. PUBLIC FAQ PAGE */}
         {route.page === 'faq' && <FaqPage onNavigate={navigateTo} />}
 
-        {/* 7. PUBLIC CONTACT / ENROLLMENT PAGE */}
+        {/* 9. PUBLIC CONTACT / ENROLLMENT PAGE */}
         {route.page === 'contact' && (
           <ContactPage initialCourse={route.courseNameForContact} />
         )}
 
-        {/* 8. NORMAL USER LOGIN / REGISTRATION PAGE */}
+        {/* 10. PUBLIC HEALTH PAGE */}
+        {route.page === 'health' && <HealthPage onNavigate={navigateTo} />}
+
+        {/* 11. PUBLIC 404 NOT FOUND PAGE */}
+        {route.page === 'not-found' && <NotFoundPage onNavigate={navigateTo} />}
+
+        {/* 12. NORMAL USER LOGIN / REGISTRATION PAGE */}
         {(route.page === 'login' || route.page === 'register') && (
           <LoginPage
             initialMode={route.page === 'register' ? 'register' : 'login'}
@@ -335,7 +399,7 @@ export default function App() {
           />
         )}
 
-        {/* 9. PRIVATE ADMIN LOGIN */}
+        {/* 13. PRIVATE ADMIN LOGIN */}
         {route.page === 'admin-login' && (
           <AdminLoginPage
             onLoginSuccess={(admin) => {
@@ -346,13 +410,20 @@ export default function App() {
           />
         )}
 
-        {/* 10. PRIVATE ADMIN DASHBOARD */}
+        {/* 14. PRIVATE ADMIN DASHBOARD */}
         {route.page === 'admin-dashboard' && (
           adminUser ? (
             <AdminDashboardPage
               admin={adminUser}
+              initialTab={route.adminTab || 'overview'}
               onLogout={handleAdminLogout}
               onNavigatePublic={navigateTo}
+              onTabChange={(tab) => {
+                const targetPath = tab === 'overview' ? '/admin/dashboard' : `/admin/${tab}`;
+                try {
+                  window.history.pushState({ page: 'admin-dashboard', adminTab: tab }, '', targetPath);
+                } catch {}
+              }}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center p-12 bg-[#F4F1EA]">
@@ -385,4 +456,3 @@ export default function App() {
     </div>
   );
 }
-

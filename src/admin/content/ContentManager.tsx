@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Course } from '../../types';
 import {
   BookOpen,
@@ -24,16 +24,24 @@ interface ContentManagerProps {
   siteSettings: Record<string, string>;
   onRefreshCourses: () => void;
   onRefreshSettings: () => void;
+  initialSection?: 'courses' | 'website';
 }
 
 export const ContentManager: React.FC<ContentManagerProps> = ({
   courses,
   siteSettings,
   onRefreshCourses,
-  onRefreshSettings
+  onRefreshSettings,
+  initialSection = 'courses'
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'courses' | 'website'>('courses');
+  const [activeSubTab, setActiveSubTab] = useState<'courses' | 'website'>(initialSection);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (initialSection) {
+      setActiveSubTab(initialSection);
+    }
+  }, [initialSection]);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'order' | 'name' | 'category'>('order');

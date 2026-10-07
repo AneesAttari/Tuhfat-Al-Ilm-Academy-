@@ -25,7 +25,8 @@ import {
   Plus,
   ShieldCheck,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from 'lucide-react';
 
 interface AdminDashboardPageProps {
@@ -157,8 +158,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const navItems: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'content', label: 'Courses & Content', icon: BookOpen, badge: courses.length },
-    { id: 'inquiries', label: 'Inquiries', icon: MessageSquareQuote, badge: inquiries.filter((i) => i.status === 'New').length },
+    { id: 'courses', label: 'Courses Directory', icon: BookOpen, badge: courses.length },
+    { id: 'content', label: 'Site Content & CMS', icon: FileText },
+    { id: 'inquiries', label: 'Inquiries & Trials', icon: MessageSquareQuote, badge: inquiries.filter((i) => i.status === 'New').length },
     { id: 'students', label: 'Students & Enrollments', icon: Users, badge: inquiries.filter((i) => i.status === 'Enrolled').length },
     { id: 'announcements', label: 'Announcements', icon: Bell, badge: announcements.filter((a) => a.published).length },
     { id: 'media', label: 'Media Assets', icon: Image },
@@ -382,6 +384,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               <ContentManager
                 courses={courses}
                 siteSettings={siteSettings}
+                initialSection={activeTab === 'content' ? 'website' : 'courses'}
                 onRefreshCourses={fetchCourses}
                 onRefreshSettings={fetchSiteSettings}
               />

@@ -122,6 +122,17 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => handleNavClick('teachers')}
+              className={`transition-colors hover:text-[#064E3B] py-1 cursor-pointer ${
+                currentPage === 'teachers'
+                  ? 'text-[#064E3B] font-bold border-b-2 border-[#064E3B]'
+                  : ''
+              }`}
+            >
+              Teachers
+            </button>
+            <button
+              type="button"
               onClick={() => handleNavClick('how-it-works')}
               className={`transition-colors hover:text-[#064E3B] py-1 cursor-pointer ${
                 currentPage === 'how-it-works'
@@ -130,6 +141,17 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               How It Works
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNavClick('resources')}
+              className={`transition-colors hover:text-[#064E3B] py-1 cursor-pointer ${
+                currentPage === 'resources'
+                  ? 'text-[#064E3B] font-bold border-b-2 border-[#064E3B]'
+                  : ''
+              }`}
+            >
+              Resources
             </button>
             <button
               type="button"
@@ -152,6 +174,17 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               Contact
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNavClick('admin-login')}
+              className={`transition-colors hover:text-[#064E3B] py-1 cursor-pointer text-xs font-semibold px-2 py-0.5 rounded-md ${
+                currentPage === 'admin-login' || currentPage === 'admin-dashboard'
+                  ? 'text-[#064E3B] bg-[#ECFDF5] border border-[#A7F3D0]'
+                  : 'text-[#64748B] hover:bg-neutral-100'
+              }`}
+            >
+              Admin
             </button>
           </nav>
 
@@ -409,6 +442,19 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             type="button"
+            onClick={() => handleNavClick('teachers')}
+            className={`w-full text-left px-4 py-3 rounded-xl text-base font-semibold transition-colors flex items-center justify-between cursor-pointer ${
+              currentPage === 'teachers'
+                ? 'bg-[#ECFDF5] text-[#064E3B]'
+                : 'text-[#374151] hover:bg-neutral-50 hover:text-[#064E3B]'
+            }`}
+          >
+            <span>Our Teachers</span>
+            {currentPage === 'teachers' && <span className="w-1.5 h-1.5 rounded-full bg-[#064E3B]" />}
+          </button>
+
+          <button
+            type="button"
             onClick={() => handleNavClick('how-it-works')}
             className={`w-full text-left px-4 py-3 rounded-xl text-base font-semibold transition-colors flex items-center justify-between cursor-pointer ${
               currentPage === 'how-it-works'
@@ -418,6 +464,19 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <span>How It Works</span>
             {currentPage === 'how-it-works' && <span className="w-1.5 h-1.5 rounded-full bg-[#064E3B]" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleNavClick('resources')}
+            className={`w-full text-left px-4 py-3 rounded-xl text-base font-semibold transition-colors flex items-center justify-between cursor-pointer ${
+              currentPage === 'resources'
+                ? 'bg-[#ECFDF5] text-[#064E3B]'
+                : 'text-[#374151] hover:bg-neutral-50 hover:text-[#064E3B]'
+            }`}
+          >
+            <span>Learning Resources</span>
+            {currentPage === 'resources' && <span className="w-1.5 h-1.5 rounded-full bg-[#064E3B]" />}
           </button>
 
           <button

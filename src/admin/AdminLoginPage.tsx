@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PageId, AdminUser } from '../types';
-import { Lock, Mail, ShieldAlert, ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ShieldAlert, ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Logo } from '../components/Logo';
+
+declare global {
+  interface Window {
+    google?: any;
+    __googleGsiLoaded?: boolean;
+  }
+}
 
 interface AdminLoginPageProps {
   onLoginSuccess: (admin: AdminUser) => void;
@@ -16,6 +23,10 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [googleClientId, setGoogleClientId] = useState<string>('');
+  const [googleConfigured, setGoogleConfigured] = useState<boolean>(false);
+  const [authorizedEmails, setAuthorizedEmails] = useState<string[]>([]);
+  const googleBtnContainerRef = useRef<HTMLDivElement>(null);
 
   // Check current session
   useEffect(() => {
@@ -32,7 +43,89 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
       });
   }, [onLoginSuccess]);
 
-  const handleGoogleLogin = async () => {
+  // Fetch Google OAuth client configuration & load Google Identity Services
+  useEffect(() => {
+    fetch('/api/auth/google-client-id')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.clientId) {
+          setGoogleClientId(data.clientId);
+          setGoogleConfigured(Boolean(data.configured));
+        }
+        if (data.authorizedEmails && Array.isArray(data.authorizedEmails)) {
+          setAuthorizedEmails(data.authorizedEmails);
+        }
+      })
+      .catch(() => {});
+
+    // Dynamically load Google Identity Services script if not already present
+    if (!document.getElementById('google-gsi-client')) {
+      const script = document.createElement('script');
+      script.id = 'google-gsi-client';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        window.__googleGsiLoaded = true;
+      };
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  // Initialize Google Identity Services when Client ID and SDK are ready
+  useEffect(() => {
+    if (!googleClientId || typeof window === 'undefined') return;
+
+    const initGIS = () => {
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+            itp_support: true,
+            context: 'signin'
+          });
+
+          // Render Google button inside container if available
+          if (googleBtnContainerRef.current) {
+            window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
+              type: 'standard',
+              theme: 'outline',
+              size: 'large',
+              text: 'continue_with',
+              shape: 'rectangular',
+              logo_alignment: 'left',
+              width: 320
+            });
+          }
+        } catch (e) {
+          console.error('[Google GIS Init Error]:', e);
+        }
+      }
+    };
+
+    if (window.google?.accounts?.id) {
+      initGIS();
+    } else {
+      const timer = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          initGIS();
+          clearInterval(timer);
+        }
+      }, 250);
+      return () => clearInterval(timer);
+    }
+  }, [googleClientId]);
+
+  // Handle Google Token Credential Verification via Backend
+  const handleGoogleCredentialResponse = async (response: { credential?: string }) => {
+    if (!response.credential) {
+      setError('Google Sign-In was cancelled or failed to return an authentication credential.');
+      return;
+    }
+
     setError(null);
     setSuccessMsg(null);
     setGoogleSubmitting(true);
@@ -41,21 +134,103 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
       const res = await fetch('/api/auth/google-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim().toLowerCase() || 'tuhfatulilmacademy@gmail.com' })
+        body: JSON.stringify({ credential: response.credential })
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Google authentication failed.');
+        setError(data.error || 'Access Denied: Your Google account is not an authorized administrator.');
         return;
       }
 
-      if (data.admin) {
-        onLoginSuccess(data.admin);
-      }
+      setSuccessMsg('Google identity verified. Opening Administrator Dashboard...');
+      setTimeout(() => {
+        if (data.admin) {
+          onLoginSuccess(data.admin);
+        }
+      }, 400);
     } catch {
-      setError('Unable to complete Google sign-in. Please verify your connection.');
+      setError('Unable to verify Google credential with academy server. Please check your network.');
     } finally {
+      setGoogleSubmitting(false);
+    }
+  };
+
+  const handleGoogleButtonClick = () => {
+    setError(null);
+    setSuccessMsg(null);
+
+    // If client ID is not configured in .env, display clear explanation
+    if (!googleClientId || !googleConfigured) {
+      setError(
+        'Google OAuth Client ID is not yet configured in .env (GOOGLE_CLIENT_ID). ' +
+        'Please configure your Google OAuth credentials in Hostinger environment settings, ' +
+        'or sign in using your administrator email and password below.'
+      );
+      return;
+    }
+
+    if (!window.google?.accounts) {
+      setError('Google Sign-In service is still loading. Please wait a moment and try again.');
+      return;
+    }
+
+    setGoogleSubmitting(true);
+
+    try {
+      // 1. Try Google Identity Services prompt (supports native account chooser on mobile/Android and desktop)
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          // If prompt was skipped or blocked by popup blocker, try token client
+          if (window.google.accounts.oauth2) {
+            const tokenClient = window.google.accounts.oauth2.initTokenClient({
+              client_id: googleClientId,
+              scope: 'email profile openid',
+              callback: async (tokenResponse: any) => {
+                if (tokenResponse.error) {
+                  setError(`Google login error: ${tokenResponse.error}`);
+                  setGoogleSubmitting(false);
+                  return;
+                }
+                if (tokenResponse.access_token) {
+                  // Fetch userinfo using access token and verify on backend
+                  try {
+                    const infoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                      headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                    });
+                    const info = await infoRes.json();
+                    if (info.email) {
+                      const res = await fetch('/api/auth/google-login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: info.email })
+                      });
+                      const data = await res.json();
+                      if (!res.ok) {
+                        setError(data.error || 'Access Denied: Account not authorized.');
+                      } else {
+                        setSuccessMsg('Authorization verified. Redirecting...');
+                        setTimeout(() => onLoginSuccess(data.admin), 300);
+                      }
+                    }
+                  } catch {
+                    setError('Failed to retrieve Google profile.');
+                  } finally {
+                    setGoogleSubmitting(false);
+                  }
+                }
+              }
+            });
+            tokenClient.requestAccessToken({ prompt: 'select_account' });
+          } else {
+            setGoogleSubmitting(false);
+          }
+        } else {
+          setGoogleSubmitting(false);
+        }
+      });
+    } catch (e: any) {
+      setError(e.message || 'Unable to open Google sign-in dialog.');
       setGoogleSubmitting(false);
     }
   };
@@ -74,7 +249,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
     setSubmitting(true);
 
     try {
-      const res = await fetch('/api/user/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password })
@@ -82,18 +257,14 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Authentication failed. Please verify your credentials.');
+        setError(data.error || 'Authentication failed. Please verify your administrator credentials.');
         return;
       }
 
-      if (data.isAdmin || data.redirect === 'admin-dashboard' || data.user?.role === 'admin') {
-        setSuccessMsg('Authentication successful. Loading Admin Dashboard...');
-        setTimeout(() => {
-          onLoginSuccess(data.admin || { id: data.user.id, email: data.user.email });
-        }, 300);
-      } else {
-        setError('This account does not have administrator privileges.');
-      }
+      setSuccessMsg('Administrator authentication verified. Loading Dashboard...');
+      setTimeout(() => {
+        onLoginSuccess(data.admin || { id: cleanEmail, email: cleanEmail });
+      }, 350);
     } catch {
       setError('Unable to connect to the server. Please check your connection.');
     } finally {
@@ -145,22 +316,26 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
           {error && (
             <div className="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2.5">
               <ShieldAlert className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <div className="space-y-1">
+                <span className="font-semibold block">Access Notice:</span>
+                <span>{error}</span>
+              </div>
             </div>
           )}
 
-          {/* Continue with Google */}
+          {/* Real Google OAuth Authentication Section */}
           <div className="space-y-3 mb-6">
             <button
               type="button"
               disabled={googleSubmitting}
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleButtonClick}
               className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-[#CBD5E1] rounded-2xl bg-white hover:bg-neutral-50 text-sm font-semibold text-[#1F2937] shadow-xs hover:shadow transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#064E3B] disabled:opacity-60"
+              aria-label="Continue with Google Authentication"
             >
               {googleSubmitting ? (
                 <span className="w-4 h-4 border-2 border-[#064E3B] border-t-transparent rounded-full animate-spin" />
               ) : (
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -181,6 +356,14 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
               )}
               <span>Continue with Google</span>
             </button>
+
+            {/* Hidden container for rendered Google GIS button */}
+            <div ref={googleBtnContainerRef} className="hidden" aria-hidden="true" />
+
+            {/* Authorized Accounts Clarification */}
+            <div className="text-[11px] text-[#64748B] text-center px-2">
+              Only authorized official administrator emails are permitted.
+            </div>
 
             {/* Divider */}
             <div className="relative py-2">
@@ -210,7 +393,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tuhfatulilmacademy@gmail.com"
+                  placeholder="tuhfatalilmacademy@gmail.com"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:border-transparent bg-white"
                 />
               </div>

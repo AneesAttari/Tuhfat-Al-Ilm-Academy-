@@ -77,13 +77,28 @@ export const ContactPage: React.FC<ContactPageProps> = ({ initialCourse }) => {
     const country = formData.country.trim();
     const message = formData.message.trim();
 
-    if (!name) {
-      setFormError('Please enter the student full name.');
+    if (!name || name.length < 2) {
+      setFormError('Please enter the student full name (at least 2 characters).');
       return;
     }
 
-    if (!phone) {
-      setFormError('Please enter your phone / WhatsApp number.');
+    if (!country) {
+      setFormError('Please enter your country/location.');
+      return;
+    }
+
+    if (!phone || phone.length < 6) {
+      setFormError('Please enter your valid phone / WhatsApp number.');
+      return;
+    }
+
+    if (email && (!email.includes('@') || !email.includes('.'))) {
+      setFormError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!course) {
+      setFormError('Please select a course.');
       return;
     }
 
@@ -530,10 +545,11 @@ Please confirm our trial lesson schedule.`;
 
                       <div>
                         <label className="block text-xs font-semibold text-[#374151] mb-1.5">
-                          Country / Location
+                          Country / Location *
                         </label>
                         <input
                           type="text"
+                          required
                           value={formData.country}
                           onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                           placeholder="e.g. UK, USA, Canada, UAE"
