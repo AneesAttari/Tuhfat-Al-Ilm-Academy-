@@ -2,104 +2,104 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Primary Homepage (Root URL) -->
   <url>
-    <loc>https://YOUR-DOMAIN.com/</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <!-- Public Navigation Pages -->
   <url>
-    <loc>https://YOUR-DOMAIN.com/about</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/about</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- 10 Dedicated Course Detail Pages -->
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/quran-reading</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/quran-reading</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/hifz-ul-quran</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/hifz-ul-quran</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/tajweed</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/tajweed</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/quran-translation</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/quran-translation</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/islamic-studies</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/islamic-studies</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/basic-islamic-knowledge</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/basic-islamic-knowledge</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/islah-character-development</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/islah-character-development</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/dua-and-sunnah</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/dua-and-sunnah</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/childrens-islamic-education</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/childrens-islamic-education</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/courses/one-to-one-classes</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/courses/one-to-one-classes</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- Other Public Pages -->
   <url>
-    <loc>https://YOUR-DOMAIN.com/how-it-works</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/how-it-works</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/faq</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/faq</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://YOUR-DOMAIN.com/contact</loc>
-    <lastmod>2026-10-05</lastmod>
+    <loc>https://tuhfatalilm.online/contact</loc>
+    <lastmod>2026-10-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>

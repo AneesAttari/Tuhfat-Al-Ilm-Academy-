@@ -14,6 +14,8 @@ export default defineConfig(() => {
     server: {
       // Allow AI Studio preview, custom domains, and hostnames
       allowedHosts: [
+        'tuhfatalilm.online',
+        '.tuhfatalilm.online',
         'tuhfatalilmacademy.ai.studio',
         '.ai.studio',
         'localhost',

@@ -4,5 +4,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 
-# Replace YOUR-DOMAIN.com with your actual custom domain (e.g., from Hostinger)
-Sitemap: https://YOUR-DOMAIN.com/sitemap.xml
+Sitemap: https://tuhfatalilm.online/sitemap.xml
