@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageId } from '../types';
 import { FAQS } from '../data/faqs';
 import { ChevronDown, MessageCircle, Mail, Phone, ArrowRight, HelpCircle } from 'lucide-react';
@@ -10,6 +10,33 @@ interface FaqPageProps {
 
 export const FaqPage: React.FC<FaqPageProps> = ({ onNavigate }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(0); // First open by default
+
+  useEffect(() => {
+    let scriptTag = document.getElementById('faq-schema');
+    if (!scriptTag) {
+      scriptTag = document.createElement('script');
+      scriptTag.id = 'faq-schema';
+      scriptTag.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(scriptTag);
+    }
+    scriptTag.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: FAQS.map((f) => ({
+        '@type': 'Question',
+        name: f.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: f.answer
+        }
+      }))
+    });
+
+    return () => {
+      const existing = document.getElementById('faq-schema');
+      if (existing) existing.remove();
+    };
+  }, []);
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);

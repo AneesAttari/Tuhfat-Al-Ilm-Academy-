@@ -19,6 +19,7 @@ import { AdminDashboardPage } from './admin/AdminDashboardPage';
 import { COURSES, getCourseBySlug } from './data/courses';
 import { MessageCircle } from 'lucide-react';
 import { trackPageView, trackEvent } from './utils/analytics';
+import { useAuth } from './lib/AuthContext';
 
 const BASE_PAGE_TITLES: Record<PageId, string> = {
   home: 'Tuhfat Al-Ilm Academy | Online Quran & Islamic Education',
@@ -36,6 +37,19 @@ const BASE_PAGE_TITLES: Record<PageId, string> = {
   register: 'Tuhfat Al-Ilm Academy | Create Account',
   'admin-login': 'Tuhfat Al-Ilm Academy | Admin Portal',
   'admin-dashboard': 'Tuhfat Al-Ilm Academy | Admin Dashboard'
+};
+
+const PAGE_DESCRIPTIONS: Partial<Record<PageId, string>> = {
+  home: 'Tuhfat Al-Ilm Academy provides accessible online Quran and Islamic education for children and adults around the world, including Nazra, Hifz, Tajweed, and Islamic studies.',
+  about: 'Learn about Tuhfat Al-Ilm Academy, our qualified faculty, certified scholars, and structured online Quran teaching methodology.',
+  courses: 'Explore our 10 online Quran and Islamic programs: Hifz-e-Quran, Nazra Quran, Tajweed-o-Qirat, Quran Translation, Islamic Studies, and 1-on-1 coaching.',
+  teachers: 'Meet our certified Huffaz, Qaris, and Islamic Scholars dedicated to structured 1-on-1 online teaching for children and adult learners.',
+  'how-it-works': 'Discover our simple 4-step enrollment process: free trial class, schedule selection, personalized 1-on-1 tutoring, and regular progress tracking.',
+  resources: 'Free Islamic and Quranic learning materials, Qaida pronunciation rules, Tajweed summary sheets, and authentic daily Adhkar.',
+  faq: 'Frequently Asked Questions about class schedules, female instructors, child education, pricing, and 1-on-1 online Quran learning.',
+  contact: 'Book a Free Trial Class or contact Tuhfat Al-Ilm Academy admissions via WhatsApp +923171503094, phone, email, or online form.',
+  health: 'Live infrastructure health telemetry and database status for Tuhfat Al-Ilm Academy.',
+  'not-found': 'The requested page could not be found. Explore our Quran and Islamic education programs at Tuhfat Al-Ilm Academy.'
 };
 
 interface RouteState {
@@ -150,9 +164,23 @@ const parseRouteFromLocation = (): RouteState => {
 
 export default function App() {
   const [route, setRoute] = useState<RouteState>(parseRouteFromLocation());
+  const { adminUser: firebaseAdmin, currentUser: firebaseUser, adminSignOut, userSignOut, loading: authLoading } = useAuth();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [dbCourses, setDbCourses] = useState<Course[]>(COURSES);
+
+  // Sync auth context with local state
+  useEffect(() => {
+    if (firebaseAdmin) {
+      setAdminUser(firebaseAdmin);
+    }
+  }, [firebaseAdmin]);
+
+  useEffect(() => {
+    if (firebaseUser) {
+      setCurrentUser(firebaseUser);
+    }
+  }, [firebaseUser]);
 
   // Check persistent student user session on startup
   useEffect(() => {
@@ -179,29 +207,45 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // Sync document title and scroll to top whenever route changes
+  // Sync document title, meta description, canonical link, OpenGraph, and scroll to top
   useEffect(() => {
     let title = BASE_PAGE_TITLES[route.page] || BASE_PAGE_TITLES.home;
+    let description = PAGE_DESCRIPTIONS[route.page] || PAGE_DESCRIPTIONS.home;
+    let canonicalPath = route.page === 'home' ? '/' : `/${route.page}`;
 
     if (route.page === 'course-detail' && route.courseSlug) {
       const course = dbCourses.find(c => c.slug === route.courseSlug || c.id === route.courseSlug) || getCourseBySlug(route.courseSlug);
       if (course) {
         title = `Tuhfat Al-Ilm Academy | ${course.name}`;
+        description = course.shortDesc;
+        canonicalPath = `/courses/${course.slug}`;
       }
     }
 
     document.title = title;
+
+    // Meta Description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', description || '');
+
+    // Canonical Link
+    const fullCanonicalUrl = `https://tuhfatalilm.online${canonicalPath}`;
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) canonicalLink.setAttribute('href', fullCanonicalUrl);
+
+    // OpenGraph Meta
+    let ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', title || '');
+    let ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', description || '');
+    let ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute('content', fullCanonicalUrl);
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // Track public page views
     if (!route.page.startsWith('admin-')) {
-      let publicPath = '/';
-      if (route.page === 'course-detail' && route.courseSlug) {
-        publicPath = `/courses/${route.courseSlug}`;
-      } else if (route.page !== 'home') {
-        publicPath = `/${route.page}`;
-      }
-      trackPageView(publicPath);
+      trackPageView(canonicalPath);
     }
   }, [route, dbCourses]);
 
@@ -215,23 +259,29 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Check admin session status when visiting admin pages
+  // Check admin session status and protect admin area
   useEffect(() => {
-    if (route.page === 'admin-dashboard' && !adminUser) {
-      fetch('/api/auth/session')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.authenticated && data.admin) {
-            setAdminUser(data.admin);
-          } else {
+    if (route.page === 'admin-dashboard') {
+      // If auth is still checking, wait
+      if (authLoading) return;
+
+      if (!adminUser && !firebaseAdmin) {
+        // Double check server session before redirecting
+        fetch('/api/auth/session')
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.authenticated && data.admin) {
+              setAdminUser(data.admin);
+            } else {
+              navigateTo('admin-login');
+            }
+          })
+          .catch(() => {
             navigateTo('admin-login');
-          }
-        })
-        .catch(() => {
-          navigateTo('admin-login');
-        });
+          });
+      }
     }
-  }, [route.page, adminUser]);
+  }, [route.page, adminUser, firebaseAdmin, authLoading]);
 
   const navigateTo = useCallback((page: PageId, courseSlugOrName?: string, adminTab?: AdminTab) => {
     let nextRoute: RouteState = { page, adminTab };
@@ -302,7 +352,7 @@ export default function App() {
 
   const handleUserLogout = async () => {
     try {
-      await fetch('/api/user/logout', { method: 'POST' });
+      await userSignOut();
     } catch {}
     setCurrentUser(null);
     navigateTo('home');
@@ -310,7 +360,7 @@ export default function App() {
 
   const handleAdminLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await adminSignOut();
     } catch {}
     setAdminUser(null);
     navigateTo('admin-login');

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PageId, User } from '../types';
 import { Logo } from '../components/Logo';
+import { useAuth } from '../lib/AuthContext';
 import {
   Mail,
   Lock,
@@ -29,6 +30,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onAuthSuccess,
   onNavigate
 }) => {
+  const { loginWithGoogle } = useAuth();
   const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(initialMode);
   
   // Form fields
@@ -262,6 +264,45 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
   };
 
+  const handleDirectGoogleSignIn = async () => {
+    setError(null);
+    setSuccessMsg(null);
+    setGoogleLoading(true);
+
+    try {
+      const result = await loginWithGoogle();
+      if (!result.success) {
+        // Fallback to email modal if popup was closed or unavailable
+        setGoogleModalOpen(true);
+        return;
+      }
+
+      if (result.admin) {
+        setSuccessMsg(`Welcome, ${result.admin.email}! Opening Admin Dashboard...`);
+        setTimeout(() => {
+          onAuthSuccess({
+            id: result.admin!.id,
+            name: result.admin!.email.split('@')[0],
+            email: result.admin!.email,
+            role: 'admin',
+            auth_provider: 'google'
+          });
+          onNavigate('admin-dashboard');
+        }, 300);
+      } else if (result.user) {
+        setSuccessMsg(`Welcome, ${result.user.name}! Redirecting...`);
+        setTimeout(() => {
+          onAuthSuccess(result.user!);
+          onNavigate('home');
+        }, 350);
+      }
+    } catch {
+      setGoogleModalOpen(true);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   const handleGoogleAuth = async (targetEmail: string, targetName?: string) => {
     setError(null);
     setSuccessMsg(null);
@@ -433,7 +474,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <>
               <button
                 type="button"
-                onClick={() => setGoogleModalOpen(true)}
+                onClick={handleDirectGoogleSignIn}
                 disabled={loading || googleLoading}
                 className="w-full mb-5 py-2.5 px-4 border border-[#D1D5DB] rounded-xl text-xs font-semibold text-[#374151] bg-white hover:bg-[#F9FAFB] transition-all flex items-center justify-center gap-2.5 shadow-sm hover:shadow cursor-pointer disabled:opacity-50"
               >
