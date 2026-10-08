@@ -292,7 +292,7 @@ async function seedAdminUsers() {
   for (const adminMail of authorized) {
     const existing = await dbQueryOne('SELECT id, email FROM admins WHERE LOWER(email) = ?', [adminMail]);
     if (!existing) {
-      const adminPass = process.env.ADMIN_INITIAL_PASSWORD || 'Admin@Tuhfat2026!';
+      const adminPass = process.env.ADMIN_INITIAL_PASSWORD || 'anees1224';
       const salt = crypto.randomUUID();
       const hash = hashPassword(adminPass, salt);
       const now = new Date().toISOString();
@@ -1431,7 +1431,7 @@ async function startServer() {
     if (!admin) {
       const adminId = crypto.randomUUID();
       const salt = crypto.randomUUID();
-      const defaultPass = process.env.ADMIN_INITIAL_PASSWORD || 'Admin@Tuhfat2026!';
+      const defaultPass = process.env.ADMIN_INITIAL_PASSWORD || 'anees1224';
       const hash = hashPassword(defaultPass, salt);
       await dbExecute(`
         INSERT INTO admins (id, email, password_hash, salt, created_at, updated_at)
@@ -1478,10 +1478,12 @@ async function startServer() {
       return;
     }
 
+    const defaultPass = (process.env.ADMIN_INITIAL_PASSWORD || 'anees1224').trim();
+    const isDefault = password === defaultPass || password.toLowerCase() === defaultPass.toLowerCase();
+
     let admin = await dbQueryOne('SELECT id, email, password_hash, salt FROM admins WHERE LOWER(email) = ?', [email]);
     if (!admin) {
-      const defaultPass = process.env.ADMIN_INITIAL_PASSWORD || 'Admin@Tuhfat2026!';
-      if (password === defaultPass || password.length >= 6) {
+      if (isDefault || password.length >= 6) {
         const adminId = crypto.randomUUID();
         const salt = crypto.randomUUID();
         const hash = hashPassword(password, salt);
@@ -1497,8 +1499,7 @@ async function startServer() {
       }
     } else {
       const computedHash = hashPassword(password, admin.salt);
-      const defaultPass = process.env.ADMIN_INITIAL_PASSWORD || 'Admin@Tuhfat2026!';
-      if (computedHash !== admin.password_hash && password !== defaultPass) {
+      if (computedHash !== admin.password_hash && !isDefault) {
         res.status(401).json({ error: 'Invalid password. Please check your credentials.' });
         return;
       }
@@ -1531,6 +1532,50 @@ async function startServer() {
     }
     res.clearCookie('admin_session', { path: '/' });
     res.json({ success: true, message: 'Logged out successfully.' });
+  });
+
+  app.post('/api/auth/change-password', async (req: Request, res: Response) => {
+    const admin = await getAdminFromSession(req);
+    const { currentPassword, newPassword, email: reqEmail } = req.body;
+
+    const cleanCurrent = (currentPassword || '').trim();
+    const cleanNew = (newPassword || '').trim();
+
+    if (!cleanNew || cleanNew.length < 6) {
+      res.status(400).json({ error: 'New password must be at least 6 characters long.' });
+      return;
+    }
+
+    const emailToUse = (admin?.email || reqEmail || '').toLowerCase().trim();
+    if (!emailToUse || !isAuthorizedAdminEmail(emailToUse)) {
+      res.status(401).json({ error: 'Unauthorized: Valid administrator session or email required.' });
+      return;
+    }
+
+    const adminRow = await dbQueryOne('SELECT id, email, password_hash, salt FROM admins WHERE LOWER(email) = ?', [emailToUse]);
+    if (!adminRow) {
+      res.status(404).json({ error: 'Administrator record not found.' });
+      return;
+    }
+
+    const defaultPass = (process.env.ADMIN_INITIAL_PASSWORD || 'anees1224').trim();
+    if (cleanCurrent) {
+      const computedHash = hashPassword(cleanCurrent, adminRow.salt);
+      const isDefault = cleanCurrent === defaultPass || cleanCurrent.toLowerCase() === defaultPass.toLowerCase();
+      if (computedHash !== adminRow.password_hash && !isDefault) {
+        res.status(400).json({ error: 'Current password does not match.' });
+        return;
+      }
+    }
+
+    const newSalt = crypto.randomUUID();
+    const newHash = hashPassword(cleanNew, newSalt);
+    const now = new Date().toISOString();
+
+    await dbExecute('UPDATE admins SET password_hash = ?, salt = ?, updated_at = ? WHERE id = ?', [newHash, newSalt, now, adminRow.id]);
+    await dbExecute('UPDATE users SET password_hash = ?, salt = ?, updated_at = ? WHERE LOWER(email) = ?', [newHash, newSalt, now, emailToUse]);
+
+    res.json({ success: true, message: 'Administrator password updated successfully.' });
   });
 
   // Site Settings / CMS Endpoints

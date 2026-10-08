@@ -161,27 +161,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Real Email/Password sign in via Firebase Auth
+  // Real Email/Password sign in via Firebase Auth & Backend Verification
   const loginWithEmailPassword = async (email: string, pass: string): Promise<{ success: boolean; admin?: AdminUser; error?: string }> => {
     const cleanEmail = email.toLowerCase().trim();
-    try {
-      const result = await signInWithEmailAndPassword(auth, cleanEmail, pass);
-      const user = result.user;
-      const userIsAdmin = isAuthorizedAdmin(cleanEmail);
+    const cleanPass = pass.trim();
 
+    if (!cleanEmail || !cleanPass) {
+      return { success: false, error: 'Please enter both your email address and password.' };
+    }
+
+    // 1. Attempt sign-in with Firebase Authentication
+    let fbUser: any = null;
+    let fbSuccess = false;
+    try {
+      const result = await signInWithEmailAndPassword(auth, cleanEmail, cleanPass);
+      fbUser = result.user;
+      fbSuccess = true;
+    } catch (fbErr: any) {
+      console.log('[Firebase Sign-In Info]:', fbErr?.message);
+    }
+
+    if (fbSuccess && fbUser) {
+      const userIsAdmin = isAuthorizedAdmin(cleanEmail);
       if (userIsAdmin) {
-        const adminObj: AdminUser = { id: user.uid, email: cleanEmail };
+        const adminObj: AdminUser = { id: fbUser.uid, email: cleanEmail };
         setAdminUser(adminObj);
 
-        // Also sync backend session
+        // Sync backend session
         try {
-          const idToken = await user.getIdToken();
+          const idToken = await fbUser.getIdToken();
           await fetch('/api/auth/google-login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               email: cleanEmail,
-              firebaseUid: user.uid,
+              firebaseUid: fbUser.uid,
               idToken
             })
           });
@@ -194,27 +208,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           error: `Account (${cleanEmail}) is not authorized for administrative access.`
         };
       }
-    } catch (err: any) {
-      // If user not in Firebase Auth yet, fallback to backend password verification
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: cleanEmail, password: pass })
-        });
-        const data = await res.json();
-        if (res.ok && data.admin) {
-          setAdminUser(data.admin);
-          // Automatically try to create/link user in Firebase Auth if not exists
-          try {
-            await createUserWithEmailAndPassword(auth, cleanEmail, pass);
-          } catch {}
-          return { success: true, admin: data.admin };
-        }
-        return { success: false, error: data.error || err.message || 'Invalid credentials.' };
-      } catch {
-        return { success: false, error: err.message || 'Failed to sign in.' };
+    }
+
+    // 2. Fallback to Backend Database Verification (supports initial & database password)
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password: cleanPass })
+      });
+      const data = await res.json();
+      if (res.ok && data.admin) {
+        setAdminUser(data.admin);
+        // Automatically create or link in Firebase Auth if not already there
+        try {
+          await createUserWithEmailAndPassword(auth, cleanEmail, cleanPass);
+        } catch {}
+        return { success: true, admin: data.admin };
       }
+      return { success: false, error: data.error || 'Invalid credentials. Please verify your email and password.' };
+    } catch {
+      return { success: false, error: 'Connection error while communicating with authentication server.' };
     }
   };
 

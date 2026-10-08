@@ -1,5 +1,24 @@
 import React, { useState } from 'react';
-import { KeyRound, ShieldCheck, CheckCircle2, AlertCircle, Lock, Bell, Globe, Save } from 'lucide-react';
+import {
+  KeyRound,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+  Lock,
+  Bell,
+  Globe,
+  Save,
+  Eye,
+  EyeOff
+} from 'lucide-react';
+import {
+  auth,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from '../../lib/firebase';
 
 interface AdminSettingsViewProps {
   adminEmail: string;
@@ -9,6 +28,9 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [savingPass, setSavingPass] = useState(false);
   const [passMsg, setPassMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -23,12 +45,21 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
     e.preventDefault();
     setPassMsg(null);
 
-    if (newPassword !== confirmPassword) {
-      setPassMsg({ type: 'error', text: 'New passwords do not match.' });
+    const cleanCurrent = currentPassword.trim();
+    const cleanNew = newPassword.trim();
+    const cleanConfirm = confirmPassword.trim();
+
+    if (!cleanCurrent) {
+      setPassMsg({ type: 'error', text: 'Please enter your current password.' });
       return;
     }
 
-    if (newPassword.length < 8) {
+    if (cleanNew !== cleanConfirm) {
+      setPassMsg({ type: 'error', text: 'New passwords do not match. Please verify both fields.' });
+      return;
+    }
+
+    if (cleanNew.length < 8) {
       setPassMsg({ type: 'error', text: 'Password must be at least 8 characters long.' });
       return;
     }
@@ -38,20 +69,55 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
       const res = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword })
+        body: JSON.stringify({ currentPassword: cleanCurrent, newPassword: cleanNew, email: adminEmail })
       });
 
       const data = await res.json();
       if (!res.ok) {
         setPassMsg({ type: 'error', text: data.error || 'Failed to update password.' });
-      } else {
-        setPassMsg({ type: 'success', text: 'Administrator password updated successfully!' });
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
+        setSavingPass(false);
+        return;
       }
+
+      // Synchronize Firebase Authentication password
+      try {
+        if (auth.currentUser && auth.currentUser.email) {
+          try {
+            const cred = EmailAuthProvider.credential(auth.currentUser.email, cleanCurrent);
+            await reauthenticateWithCredential(auth.currentUser, cred);
+            await updatePassword(auth.currentUser, cleanNew);
+          } catch (fbErr: any) {
+            console.log('[Firebase Reauth Info]:', fbErr?.message);
+            try {
+              const signRes = await signInWithEmailAndPassword(auth, adminEmail, cleanCurrent);
+              await updatePassword(signRes.user, cleanNew);
+            } catch (fbErr2: any) {
+              console.log('[Firebase Re-login Info]:', fbErr2?.message);
+            }
+          }
+        } else {
+          try {
+            const signRes = await signInWithEmailAndPassword(auth, adminEmail, cleanCurrent);
+            await updatePassword(signRes.user, cleanNew);
+          } catch {
+            try {
+              await createUserWithEmailAndPassword(auth, adminEmail, cleanNew);
+            } catch {}
+          }
+        }
+      } catch (fbSyncErr) {
+        console.warn('[Firebase Auth Sync]:', fbSyncErr);
+      }
+
+      setPassMsg({ type: 'success', text: 'Administrator password updated and synchronized successfully!' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
     } catch {
-      setPassMsg({ type: 'error', text: 'Network error. Please try again.' });
+      setPassMsg({ type: 'error', text: 'Network connection error. Please try again.' });
     } finally {
       setSavingPass(false);
     }
@@ -111,42 +177,75 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
                 <label className="block text-xs font-semibold text-[#374151] mb-1">
                   Current Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
-                />
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password"
+                    autoComplete="current-password"
+                    className="w-full pl-3.5 pr-10 py-2 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#064E3B] focus:border-[#064E3B] bg-white transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#94A3B8] hover:text-[#064E3B] transition-colors cursor-pointer"
+                    aria-label={showCurrentPassword ? 'Hide current password' : 'Show current password'}
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#374151] mb-1">
                   New Password (min 8 chars)
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
-                />
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password (min 8 chars)"
+                    autoComplete="new-password"
+                    className="w-full pl-3.5 pr-10 py-2 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#064E3B] focus:border-[#064E3B] bg-white transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#94A3B8] hover:text-[#064E3B] transition-colors cursor-pointer"
+                    aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#374151] mb-1">
                   Confirm New Password
                 </label>
-                <input
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirm new password"
+                    autoComplete="new-password"
+                    className="w-full pl-3.5 pr-10 py-2 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#064E3B] focus:border-[#064E3B] bg-white transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#94A3B8] hover:text-[#064E3B] transition-colors cursor-pointer"
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2">

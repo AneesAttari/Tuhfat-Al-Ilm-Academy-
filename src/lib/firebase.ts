@@ -12,7 +12,10 @@ import {
   User as FirebaseUser,
   RecaptchaVerifier,
   signInWithPhoneNumber,
-  ConfirmationResult
+  ConfirmationResult,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 
 export const firebaseConfig = {
@@ -57,6 +60,9 @@ export {
   signOut,
   onAuthStateChanged,
   RecaptchaVerifier,
-  signInWithPhoneNumber
+  signInWithPhoneNumber,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 };
 export type { FirebaseUser, ConfirmationResult };
