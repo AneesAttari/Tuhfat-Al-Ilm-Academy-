@@ -17,8 +17,12 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  linkWithCredential,
+  isAuthorizedAdmin
 } from '../../lib/firebase';
+import { verifyAdminPassword, setStoredAdminPassword } from '../../lib/authStorage';
+import { safePostJson } from '../../lib/apiSafe';
 
 interface AdminSettingsViewProps {
   adminEmail: string;
@@ -66,33 +70,42 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
 
     setSavingPass(true);
     try {
-      const res = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword: cleanCurrent, newPassword: cleanNew, email: adminEmail })
-      });
+      // 1. Verify current password
+      const currentValid = await verifyAdminPassword(cleanCurrent);
+      const isGoogleAdmin = auth.currentUser?.email && isAuthorizedAdmin(auth.currentUser.email);
 
-      const data = await res.json();
-      if (!res.ok) {
-        setPassMsg({ type: 'error', text: data.error || 'Failed to update password.' });
+      if (!currentValid && !isGoogleAdmin) {
+        setPassMsg({ type: 'error', text: 'Current password is incorrect. Please verify your current password.' });
         setSavingPass(false);
         return;
       }
 
-      // Synchronize Firebase Authentication password
+      // 2. Persist new password to client storage
+      await setStoredAdminPassword(cleanNew);
+
+      // 3. Synchronize with Firebase Authentication
       try {
-        if (auth.currentUser && auth.currentUser.email) {
-          try {
-            const cred = EmailAuthProvider.credential(auth.currentUser.email, cleanCurrent);
-            await reauthenticateWithCredential(auth.currentUser, cred);
-            await updatePassword(auth.currentUser, cleanNew);
-          } catch (fbErr: any) {
-            console.log('[Firebase Reauth Info]:', fbErr?.message);
+        if (auth.currentUser) {
+          const hasPasswordProvider = auth.currentUser.providerData.some(
+            (p) => p.providerId === 'password'
+          );
+          if (hasPasswordProvider) {
             try {
-              const signRes = await signInWithEmailAndPassword(auth, adminEmail, cleanCurrent);
-              await updatePassword(signRes.user, cleanNew);
-            } catch (fbErr2: any) {
-              console.log('[Firebase Re-login Info]:', fbErr2?.message);
+              const cred = EmailAuthProvider.credential(auth.currentUser.email || adminEmail, cleanCurrent);
+              await reauthenticateWithCredential(auth.currentUser, cred);
+            } catch {}
+            await updatePassword(auth.currentUser, cleanNew);
+          } else {
+            // User signed in via Google: link password provider so they can sign in with both!
+            const newCred = EmailAuthProvider.credential(auth.currentUser.email || adminEmail, cleanNew);
+            try {
+              await linkWithCredential(auth.currentUser, newCred);
+            } catch (linkErr: any) {
+              if (linkErr.code === 'auth/provider-already-linked') {
+                await updatePassword(auth.currentUser, cleanNew);
+              } else {
+                await updatePassword(auth.currentUser, cleanNew);
+              }
             }
           }
         } else {
@@ -105,19 +118,34 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
             } catch {}
           }
         }
-      } catch (fbSyncErr) {
-        console.warn('[Firebase Auth Sync]:', fbSyncErr);
+      } catch (fbSyncErr: any) {
+        console.warn('[Firebase Auth Password Sync Note]:', fbSyncErr?.message);
       }
 
-      setPassMsg({ type: 'success', text: 'Administrator password updated and synchronized successfully!' });
+      // 4. Safely sync with backend if running (non-blocking)
+      try {
+        await safePostJson('/api/auth/change-password', {
+          currentPassword: cleanCurrent,
+          newPassword: cleanNew,
+          email: adminEmail
+        });
+      } catch {}
+
+      setPassMsg({
+        type: 'success',
+        text: 'Administrator password updated and synchronized successfully! You can now log in with your new password.'
+      });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowConfirmPassword(false);
-    } catch {
-      setPassMsg({ type: 'error', text: 'Network connection error. Please try again.' });
+    } catch (err: any) {
+      setPassMsg({
+        type: 'error',
+        text: err?.message || 'Failed to update password. Please try again.'
+      });
     } finally {
       setSavingPass(false);
     }

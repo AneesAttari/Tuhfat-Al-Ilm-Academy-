@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { PageId, User } from '../types';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../lib/AuthContext';
+import { auth, signInWithEmailAndPassword, isAuthorizedAdmin } from '../lib/firebase';
+import { safePostJson } from '../lib/apiSafe';
 import {
   Mail,
   Lock,
@@ -30,7 +32,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onAuthSuccess,
   onNavigate
 }) => {
-  const { loginWithGoogle } = useAuth();
+  const { loginWithGoogle, loginWithEmailPassword } = useAuth();
   const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(initialMode);
   
   // Form fields
@@ -67,37 +69,75 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
 
     setLoading(true);
+
+    // 1. If administrator is signing in from main portal
+    if (isAuthorizedAdmin(cleanEmail)) {
+      try {
+        const result = await loginWithEmailPassword(cleanEmail, password);
+        if (result.success && result.admin) {
+          setSuccessMsg('Welcome, Administrator! Opening Admin Dashboard...');
+          setTimeout(() => {
+            onAuthSuccess({
+              id: result.admin!.id,
+              name: 'Administrator',
+              email: result.admin!.email,
+              role: 'admin',
+              auth_provider: 'local'
+            });
+            onNavigate('admin-dashboard');
+          }, 300);
+          return;
+        } else {
+          setError(result.error || 'Failed to sign in. Please verify your credentials.');
+          return;
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Failed to sign in.');
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // 2. Normal Student Login
     try {
-      const res = await fetch('/api/user/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, password })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to sign in. Please verify your credentials.');
-        return;
+      const data = await safePostJson('/api/user/login', { email: cleanEmail, password });
+      if (data) {
+        if (data.error) {
+          setError(data.error);
+          return;
+        }
+        if (data.user) {
+          setSuccessMsg(`Welcome back, ${data.user.name || 'Student'}! Redirecting...`);
+          setTimeout(() => {
+            onAuthSuccess(data.user);
+            onNavigate('home');
+          }, 400);
+          return;
+        }
       }
+    } catch {}
 
-      if (data.isAdmin || data.redirect === 'admin-dashboard' || data.user?.role === 'admin') {
-        setSuccessMsg('Welcome, Administrator! Opening Admin Dashboard...');
+    // Fallback: Check Firebase Auth
+    try {
+      const result = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      if (result.user) {
+        const studentUser: User = {
+          id: result.user.uid,
+          name: result.user.displayName || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          role: 'student',
+          auth_provider: 'local'
+        };
+        setSuccessMsg(`Welcome back, ${studentUser.name}! Redirecting...`);
         setTimeout(() => {
-          onAuthSuccess(data.user);
-          onNavigate('admin-dashboard');
-        }, 300);
-        return;
-      }
-
-      if (data.user) {
-        setSuccessMsg(`Welcome back, ${data.user.name || 'Student'}! Redirecting...`);
-        setTimeout(() => {
-          onAuthSuccess(data.user);
+          onAuthSuccess(studentUser);
           onNavigate('home');
         }, 400);
+        return;
       }
     } catch {
-      setError('Unable to reach academy server. Please check your internet connection.');
+      setError('Invalid credentials. Please verify your email and password.');
     } finally {
       setLoading(false);
     }

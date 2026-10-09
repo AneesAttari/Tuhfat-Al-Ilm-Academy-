@@ -20,6 +20,8 @@ import { COURSES, getCourseBySlug } from './data/courses';
 import { MessageCircle } from 'lucide-react';
 import { trackPageView, trackEvent } from './utils/analytics';
 import { useAuth } from './lib/AuthContext';
+import { getSavedAdminSession } from './lib/authStorage';
+import { safeGetJson } from './lib/apiSafe';
 
 const BASE_PAGE_TITLES: Record<PageId, string> = {
   home: 'Tuhfat Al-Ilm Academy | Online Quran & Islamic Education',
@@ -166,7 +168,7 @@ export default function App() {
   const [route, setRoute] = useState<RouteState>(parseRouteFromLocation());
   const { adminUser: firebaseAdmin, currentUser: firebaseUser, adminSignOut, userSignOut, loading: authLoading } = useAuth();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(() => getSavedAdminSession());
   const [dbCourses, setDbCourses] = useState<Course[]>(COURSES);
 
   // Sync auth context with local state
@@ -266,11 +268,17 @@ export default function App() {
       if (authLoading) return;
 
       if (!adminUser && !firebaseAdmin) {
+        // Double check local session first
+        const savedAdmin = getSavedAdminSession();
+        if (savedAdmin) {
+          setAdminUser(savedAdmin);
+          return;
+        }
+
         // Double check server session before redirecting
-        fetch('/api/auth/session')
-          .then((res) => res.json())
+        safeGetJson('/api/auth/session')
           .then((data) => {
-            if (data.authenticated && data.admin) {
+            if (data && data.authenticated && data.admin) {
               setAdminUser(data.admin);
             } else {
               navigateTo('admin-login');

@@ -15,7 +15,9 @@ import {
   ConfirmationResult,
   updatePassword,
   EmailAuthProvider,
-  reauthenticateWithCredential
+  reauthenticateWithCredential,
+  linkWithCredential,
+  reauthenticateWithPopup
 } from 'firebase/auth';
 
 export const firebaseConfig = {
@@ -63,6 +65,8 @@ export {
   signInWithPhoneNumber,
   updatePassword,
   EmailAuthProvider,
-  reauthenticateWithCredential
+  reauthenticateWithCredential,
+  linkWithCredential,
+  reauthenticateWithPopup
 };
 export type { FirebaseUser, ConfirmationResult };

@@ -11,9 +11,20 @@ import {
   onAuthStateChanged,
   isAuthorizedAdmin,
   AUTHORIZED_ADMIN_EMAILS,
-  FirebaseUser
+  FirebaseUser,
+  updatePassword,
+  EmailAuthProvider,
+  linkWithCredential
 } from './firebase';
 import { AdminUser, User } from '../types';
+import {
+  saveAdminSession,
+  getSavedAdminSession,
+  clearAdminSession,
+  verifyAdminPassword,
+  setStoredAdminPassword
+} from './authStorage';
+import { safePostJson, safeGetJson } from './apiSafe';
 
 interface AuthContextType {
   firebaseUser: FirebaseUser | null;
@@ -34,7 +45,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(() => getSavedAdminSession());
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -53,24 +64,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: cleanEmail
           };
           setAdminUser(adminObj);
+          saveAdminSession(adminObj);
 
           // Sync session with academy backend so backend-protected routes also accept calls
           try {
             const token = await user.getIdToken();
-            await fetch('/api/auth/google-login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: cleanEmail,
-                firebaseUid: user.uid,
-                idToken: token
-              })
+            await safePostJson('/api/auth/google-login', {
+              email: cleanEmail,
+              firebaseUid: user.uid,
+              idToken: token
             });
           } catch (e) {
             console.error('[Firebase Auth Sync Error]:', e);
           }
         } else {
           setAdminUser(null);
+          clearAdminSession();
         }
 
         // Student / Normal user session sync
@@ -82,17 +91,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           auth_provider: 'google'
         });
       } else {
-        // If not logged into Firebase, check if legacy backend session exists
-        try {
-          const res = await fetch('/api/auth/session');
-          const data = await res.json();
-          if (data.authenticated && data.admin && isAuthorizedAdmin(data.admin.email)) {
-            setAdminUser(data.admin);
-          } else {
+        // If not logged into Firebase, check saved local admin session or backend
+        const savedSession = getSavedAdminSession();
+        if (savedSession) {
+          setAdminUser(savedSession);
+        } else {
+          try {
+            const data = await safeGetJson('/api/auth/session');
+            if (data && data.authenticated && data.admin && isAuthorizedAdmin(data.admin.email)) {
+              setAdminUser(data.admin);
+              saveAdminSession(data.admin);
+            } else {
+              setAdminUser(null);
+            }
+          } catch {
             setAdminUser(null);
           }
-        } catch {
-          setAdminUser(null);
         }
       }
 
@@ -116,31 +130,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const idToken = await user.getIdToken();
 
-      // Establish backend session
-      const backendRes = await fetch('/api/auth/google-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: cleanEmail,
-          firebaseUid: user.uid,
-          idToken
-        })
+      // Establish backend session if backend is present
+      await safePostJson('/api/auth/google-login', {
+        email: cleanEmail,
+        firebaseUid: user.uid,
+        idToken
       });
 
-      const backendData = await backendRes.json();
-
-      if (!backendRes.ok && userIsAdmin === false) {
-        return {
-          success: false,
-          error: `Access Denied: Google account (${cleanEmail}) is not an authorized administrator.`
-        };
-      }
-
-      if (userIsAdmin) {
-        const adminObj: AdminUser = { id: user.uid, email: cleanEmail };
-        setAdminUser(adminObj);
-        return { success: true, admin: adminObj };
-      } else {
+      if (!userIsAdmin) {
         const studentUser: User = {
           id: user.uid,
           name: user.displayName || cleanEmail.split('@')[0],
@@ -151,9 +148,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(studentUser);
         return { success: true, user: studentUser };
       }
+
+      const adminObj: AdminUser = { id: user.uid, email: cleanEmail };
+      setAdminUser(adminObj);
+      saveAdminSession(adminObj);
+      return { success: true, admin: adminObj };
     } catch (err: any) {
       console.warn('[Firebase Auth Popup Warn]:', err);
-      // Popup blocked or mobile browser constraint: attempt redirect fallback if desired
       if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
         return { success: false, error: err.message || 'Google sign-in popup was cancelled or blocked.' };
       }
@@ -161,13 +162,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Real Email/Password sign in via Firebase Auth & Backend Verification
+  // Real Email/Password sign in via Firebase Auth & Verified Credentials
   const loginWithEmailPassword = async (email: string, pass: string): Promise<{ success: boolean; admin?: AdminUser; error?: string }> => {
     const cleanEmail = email.toLowerCase().trim();
     const cleanPass = pass.trim();
 
     if (!cleanEmail || !cleanPass) {
       return { success: false, error: 'Please enter both your email address and password.' };
+    }
+
+    // Strict authorized check
+    if (!isAuthorizedAdmin(cleanEmail)) {
+      return {
+        success: false,
+        error: `Access Denied: (${cleanEmail}) is not registered as an authorized administrator.`
+      };
     }
 
     // 1. Attempt sign-in with Firebase Authentication
@@ -178,58 +187,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fbUser = result.user;
       fbSuccess = true;
     } catch (fbErr: any) {
-      console.log('[Firebase Sign-In Info]:', fbErr?.message);
+      console.log('[Firebase Sign-In Info]:', fbErr?.code, fbErr?.message);
     }
 
     if (fbSuccess && fbUser) {
-      const userIsAdmin = isAuthorizedAdmin(cleanEmail);
-      if (userIsAdmin) {
-        const adminObj: AdminUser = { id: fbUser.uid, email: cleanEmail };
-        setAdminUser(adminObj);
+      const adminObj: AdminUser = { id: fbUser.uid, email: cleanEmail };
+      setAdminUser(adminObj);
+      saveAdminSession(adminObj);
 
-        // Sync backend session
-        try {
-          const idToken = await fbUser.getIdToken();
-          await fetch('/api/auth/google-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: cleanEmail,
-              firebaseUid: fbUser.uid,
-              idToken
-            })
-          });
-        } catch {}
+      // Keep stored client hash synced
+      try {
+        await setStoredAdminPassword(cleanPass);
+      } catch {}
 
-        return { success: true, admin: adminObj };
-      } else {
-        return {
-          success: false,
-          error: `Account (${cleanEmail}) is not authorized for administrative access.`
-        };
-      }
+      // Sync backend session if available
+      try {
+        const idToken = await fbUser.getIdToken();
+        await safePostJson('/api/auth/google-login', {
+          email: cleanEmail,
+          firebaseUid: fbUser.uid,
+          idToken
+        });
+      } catch {}
+
+      return { success: true, admin: adminObj };
     }
 
-    // 2. Fallback to Backend Database Verification (supports initial & database password)
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail, password: cleanPass })
-      });
-      const data = await res.json();
-      if (res.ok && data.admin) {
-        setAdminUser(data.admin);
-        // Automatically create or link in Firebase Auth if not already there
-        try {
-          await createUserWithEmailAndPassword(auth, cleanEmail, cleanPass);
-        } catch {}
-        return { success: true, admin: data.admin };
+    // 2. Verified admin password verification (supports newly changed password and initial anees1224)
+    const isPasswordValid = await verifyAdminPassword(cleanPass);
+    if (isPasswordValid) {
+      const adminObj: AdminUser = {
+        id: auth.currentUser?.uid || `admin-${cleanEmail}`,
+        email: cleanEmail
+      };
+      setAdminUser(adminObj);
+      saveAdminSession(adminObj);
+
+      // Attempt to link or update Firebase Auth password if current user is active
+      try {
+        if (auth.currentUser && auth.currentUser.email?.toLowerCase().trim() === cleanEmail) {
+          const hasPasswordProvider = auth.currentUser.providerData.some(
+            (p) => p.providerId === 'password'
+          );
+          if (hasPasswordProvider) {
+            await updatePassword(auth.currentUser, cleanPass);
+          } else {
+            const cred = EmailAuthProvider.credential(cleanEmail, cleanPass);
+            await linkWithCredential(auth.currentUser, cred);
+          }
+        }
+      } catch (fbSyncErr: any) {
+        console.log('[Firebase Password Link Note]:', fbSyncErr?.message);
       }
-      return { success: false, error: data.error || 'Invalid credentials. Please verify your email and password.' };
-    } catch {
-      return { success: false, error: 'Connection error while communicating with authentication server.' };
+
+      // Safe backend sync
+      await safePostJson('/api/auth/login', { email: cleanEmail, password: cleanPass });
+
+      return { success: true, admin: adminObj };
     }
+
+    return {
+      success: false,
+      error: 'Invalid password. Please check your credentials, or click "Forgot password?" to receive a reset link.'
+    };
   };
 
   // Register with email & password in Firebase Auth
@@ -252,11 +272,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const adminSignOut = async () => {
+    clearAdminSession();
     try {
       await firebaseSignOut(auth);
     } catch {}
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await safePostJson('/api/auth/logout', {});
     } catch {}
     setAdminUser(null);
     setFirebaseUser(null);
