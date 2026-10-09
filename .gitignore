@@ -26,6 +26,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # System & IDE files
+bun.lock
+bun.lockb
 .DS_Store
 .idea/
 .vscode/
