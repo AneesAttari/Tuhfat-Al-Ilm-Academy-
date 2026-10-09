@@ -1,0 +1,4 @@
+# Single Page Application redirect
+# Don't redirect files with extensions or directories
+/*    /index.html   200
+```
