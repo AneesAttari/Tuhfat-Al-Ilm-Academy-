@@ -38,6 +38,19 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
   const [editingNotes, setEditingNotes] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const getAdminHeader = () => {
+    let email = 'aneesattari67@gmail.com';
+    try {
+      const saved = localStorage.getItem('tuhfat_admin_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.email) email = parsed.email;
+      }
+    } catch {}
+    return { 'x-admin-email': email };
+  };
 
   // Filter inquiries
   const filteredInquiries = inquiries.filter((inq) => {
@@ -92,7 +105,10 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
     try {
       await fetch(`/api/inquiries/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminHeader()
+        },
         body: JSON.stringify({ status: newStatus })
       });
     } catch {}
@@ -111,7 +127,10 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
     try {
       await fetch(`/api/inquiries/${selectedInquiry.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminHeader()
+        },
         body: JSON.stringify({ notes: editingNotes })
       });
     } catch {}
@@ -129,22 +148,27 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
     try {
       await fetch(`/api/inquiries/${inq.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminHeader()
+        },
         body: JSON.stringify({ status: 'Enrolled' })
       });
     } catch {}
   };
 
   const handleDeleteInquiry = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete inquiry from ${name}?`)) {
-      return;
-    }
     deleteLocalInquiry(id);
     onRefreshInquiries();
     setIsDetailModalOpen(false);
+    setConfirmDeleteId(null);
+    setFeedbackMsg({ type: 'success', text: `Inquiry from ${name} deleted successfully.` });
 
     try {
-      await fetch(`/api/inquiries/${id}`, { method: 'DELETE' });
+      await fetch(`/api/inquiries/${id}`, {
+        method: 'DELETE',
+        headers: { ...getAdminHeader() }
+      });
     } catch {}
   };
 
@@ -321,14 +345,33 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
                         </button>
                       )}
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteInquiry(inq.id, inq.name)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                        title="Delete inquiry"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {confirmDeleteId === inq.id ? (
+                        <div className="inline-flex items-center gap-1 bg-neutral-100 p-1 rounded-xl">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteInquiry(inq.id, inq.name)}
+                            className="px-2 py-1 bg-red-600 text-white rounded-lg text-[10px] font-bold hover:bg-red-700 cursor-pointer"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="px-2 py-1 bg-slate-200 text-slate-700 rounded-lg text-[10px] font-semibold hover:bg-slate-300 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(inq.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          title="Delete inquiry"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

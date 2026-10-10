@@ -204,38 +204,7 @@ Please confirm our trial lesson schedule.`;
       localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(list));
     } catch {}
 
-    // 2. Dispatch to FormSubmit AJAX endpoint for direct Gmail delivery to aneesattari67@gmail.com
-    try {
-      await fetch(`https://formsubmit.co/ajax/${ADMIN_PRIMARY_GMAIL}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          _subject: emailSubject,
-          _cc: ACADEMY_SECONDARY_GMAIL,
-          _template: 'table',
-          _captcha: 'false',
-          'Student Name': name,
-          'Parent / Guardian': parentName || 'N/A (Direct Student)',
-          'Phone / WhatsApp': phone,
-          'Email Address': email || 'Not provided',
-          'Course Name': course,
-          'Country / Location': country,
-          'Preferred Date': preferredDate || 'Flexible / As soon as possible',
-          'Preferred Time': preferredTime,
-          'Timezone': timezone,
-          'Notes / Message': message || 'No additional notes provided.',
-          'Booking Reference ID': bookingId,
-          'Submitted Date': new Date().toLocaleString()
-        })
-      });
-    } catch (e) {
-      console.warn('[FormSubmit Notice]:', e);
-    }
-
-    // 3. Safely sync to backend route if running (non-blocking)
+    // 2. Safely sync to backend route if running (non-blocking)
     try {
       await safePostJson('/api/trial-bookings', {
         name,

@@ -734,15 +734,12 @@ To: ${recipients.join(', ')}
 Subject: ${subject}
 ${bodyText}`);
 
-    // Fallback: Dispatch to FormSubmit API for direct forwarding to aneesattari67@gmail.com
     try {
       const fsRes = await fetch('https://formsubmit.co/ajax/aneesattari67@gmail.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': 'https://tuhfatalilm.online',
-          'Referer': 'https://tuhfatalilm.online/contact'
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           _subject: subject,
@@ -768,7 +765,7 @@ ${bodyText}`);
         status = 'sent';
       }
     } catch (e: any) {
-      console.warn('[Server FormSubmit Note]:', e?.message);
+      console.warn('[Server Background Email Note]:', e?.message);
     }
   }
 
