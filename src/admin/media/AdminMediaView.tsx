@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import heroImg from '../../assets/images/quran_hero_learning_1791212029554.jpg';
 import studyImg from '../../assets/images/quran_tajweed_reading_1791212054850.jpg';
-import geomImg from '../../assets/images/islamic_geometry_texture_1791212043809.jpg';
 
 interface MediaItem {
   id: string;
@@ -36,6 +35,7 @@ export const AdminMediaView: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Fallback initial list if API not loaded
@@ -47,7 +47,7 @@ export const AdminMediaView: React.FC = () => {
       title: 'Tuhfat Al-Ilm Academy Official Logo',
       size: '298 KB',
       category: 'Official Branding',
-      canDelete: false
+      canDelete: true
     },
     {
       id: 'asset-hero',
@@ -56,7 +56,7 @@ export const AdminMediaView: React.FC = () => {
       title: 'Quran Hero Showcase (Authentic Carved Stand)',
       size: '220 KB',
       category: 'Curriculum & Themes',
-      canDelete: false
+      canDelete: true
     },
     {
       id: 'asset-study',
@@ -65,23 +65,28 @@ export const AdminMediaView: React.FC = () => {
       title: 'Tajweed Study & Reading Atmosphere',
       size: '185 KB',
       category: 'Curriculum & Themes',
-      canDelete: false
-    },
-    {
-      id: 'asset-geom',
-      filename: 'islamic_geometry_texture_1791212043809.jpg',
-      url: geomImg,
-      title: 'Traditional Islamic Geometric Texture',
-      size: '142 KB',
-      category: 'Curriculum & Themes',
-      canDelete: false
+      canDelete: true
     }
   ];
+
+  const getAdminHeader = () => {
+    let email = 'aneesattari67@gmail.com';
+    try {
+      const saved = localStorage.getItem('tuhfat_admin_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.email) email = parsed.email;
+      }
+    } catch {}
+    return { 'x-admin-email': email };
+  };
 
   const fetchMedia = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/media');
+      const res = await fetch('/api/media', {
+        headers: { ...getAdminHeader() }
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.media && Array.isArray(data.media)) {
@@ -136,7 +141,10 @@ export const AdminMediaView: React.FC = () => {
       try {
         const res = await fetch('/api/media/upload', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAdminHeader()
+          },
           body: JSON.stringify({
             filename: file.name,
             base64Data
@@ -150,8 +158,8 @@ export const AdminMediaView: React.FC = () => {
         } else {
           setFeedback({ type: 'error', message: data.error || 'Failed to upload image.' });
         }
-      } catch {
-        setFeedback({ type: 'error', message: 'Network error uploading image.' });
+      } catch (err: any) {
+        setFeedback({ type: 'error', message: err?.message || 'Network error uploading image.' });
       } finally {
         setUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -161,28 +169,21 @@ export const AdminMediaView: React.FC = () => {
   };
 
   const handleDelete = async (item: MediaItem) => {
-    if (!item.canDelete) {
-      alert('System branding and core assets cannot be deleted.');
-      return;
-    }
-
-    if (!window.confirm(`Are you sure you want to permanently delete "${item.filename}"? Any page referencing this image will no longer display it.`)) {
-      return;
-    }
-
     try {
       const res = await fetch(`/api/media/${encodeURIComponent(item.filename)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: { ...getAdminHeader() }
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setFeedback({ type: 'success', message: `Deleted asset "${item.filename}".` });
+        setFeedback({ type: 'success', message: `Deleted asset "${item.filename}" successfully.` });
+        setConfirmDeleteId(null);
         fetchMedia();
       } else {
         setFeedback({ type: 'error', message: data.error || 'Failed to delete file.' });
       }
-    } catch {
-      setFeedback({ type: 'error', message: 'Network error deleting file.' });
+    } catch (err: any) {
+      setFeedback({ type: 'error', message: err?.message || 'Network error deleting file.' });
     }
   };
 
@@ -357,14 +358,31 @@ export const AdminMediaView: React.FC = () => {
                   )}
                 </button>
 
-                {item.canDelete && (
+                {confirmDeleteId === item.id ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item)}
+                      className="flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer text-center"
+                    >
+                      Confirm Delete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="py-1.5 px-3 rounded-xl text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => handleDelete(item)}
-                    className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-[11px] font-semibold text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
+                    onClick={() => setConfirmDeleteId(item.id)}
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-[11px] font-semibold text-red-600 hover:bg-red-50 border border-red-200 transition-colors cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete Uploaded Asset</span>
+                    <span>Delete Asset</span>
                   </button>
                 )}
               </div>

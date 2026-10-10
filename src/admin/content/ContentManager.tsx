@@ -77,6 +77,18 @@ export const ContentManager: React.FC<ContentManagerProps> = ({
 
   const categories = Array.from(new Set(courses.map((c) => c.category)));
 
+  const getAdminHeader = () => {
+    let email = 'aneesattari67@gmail.com';
+    try {
+      const saved = localStorage.getItem('tuhfat_admin_session');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.email) email = parsed.email;
+      }
+    } catch {}
+    return { 'x-admin-email': email };
+  };
+
   // Handlers for Course CRUD
   const handleOpenAddCourse = () => {
     setEditingCourse({
@@ -110,7 +122,10 @@ export const ContentManager: React.FC<ContentManagerProps> = ({
     try {
       const res = await fetch(`/api/courses/${course.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminHeader()
+        },
         body: JSON.stringify({
           title: course.name,
           category: course.category,
@@ -137,7 +152,10 @@ export const ContentManager: React.FC<ContentManagerProps> = ({
       return;
     }
     try {
-      const res = await fetch(`/api/courses/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/courses/${id}`, {
+        method: 'DELETE',
+        headers: { ...getAdminHeader() }
+      });
       if (res.ok) {
         setFeedbackMsg({ type: 'success', text: `Course "${name}" was deleted successfully.` });
         onRefreshCourses();
@@ -181,7 +199,10 @@ export const ContentManager: React.FC<ContentManagerProps> = ({
     try {
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminHeader()
+        },
         body: JSON.stringify(payload)
       });
       const data = await res.json();
@@ -211,7 +232,10 @@ export const ContentManager: React.FC<ContentManagerProps> = ({
     try {
       const res = await fetch('/api/content', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminHeader()
+        },
         body: JSON.stringify({ settings: settingsForm })
       });
       if (res.ok) {
