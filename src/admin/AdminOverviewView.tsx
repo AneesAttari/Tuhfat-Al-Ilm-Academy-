@@ -80,6 +80,15 @@ export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
 
           <button
             type="button"
+            onClick={() => onNavigateTab('teachers')}
+            className="flex items-center justify-center gap-1.5 p-3 rounded-xl bg-[#FAF9F5] hover:bg-[#F4F1EA] text-[#0F172A] text-xs font-semibold border border-[#E2E8F0] transition-colors cursor-pointer"
+          >
+            <GraduationCap className="w-4 h-4 text-[#064E3B]" />
+            <span>Teachers Faculty</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => onNavigateTab('content')}
             className="flex items-center justify-center gap-1.5 p-3 rounded-xl bg-[#FAF9F5] hover:bg-[#F4F1EA] text-[#0F172A] text-xs font-semibold border border-[#E2E8F0] transition-colors cursor-pointer"
           >
@@ -94,15 +103,6 @@ export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
           >
             <MessageCircle className="w-4 h-4 text-[#D97706]" />
             <span>View Inquiries</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenCreateAnnouncement}
-            className="flex items-center justify-center gap-1.5 p-3 rounded-xl bg-[#FAF9F5] hover:bg-[#F4F1EA] text-[#0F172A] text-xs font-semibold border border-[#E2E8F0] transition-colors cursor-pointer"
-          >
-            <Bell className="w-4 h-4 text-[#3B82F6]" />
-            <span>New Announcement</span>
           </button>
 
           <button

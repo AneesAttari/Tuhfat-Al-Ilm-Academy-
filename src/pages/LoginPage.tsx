@@ -2,7 +2,14 @@ import React, { useState } from 'react';
 import { PageId, User } from '../types';
 import { Logo } from '../components/Logo';
 import { useAuth } from '../lib/AuthContext';
-import { auth, signInWithEmailAndPassword, isAuthorizedAdmin } from '../lib/firebase';
+import {
+  auth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
+  isAuthorizedAdmin
+} from '../lib/firebase';
 import { safePostJson } from '../lib/apiSafe';
 import {
   Mail,
@@ -172,36 +179,70 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
 
     setLoading(true);
+
+    // 1. Direct Firebase Authentication client-side registration
     try {
-      const res = await fetch('/api/user/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+
+      try {
+        await updateProfile(userCredential.user, { displayName: cleanName });
+      } catch {}
+
+      const studentUser: User = {
+        id: userCredential.user.uid,
+        name: cleanName,
+        email: cleanEmail,
+        role: 'student',
+        auth_provider: 'local'
+      };
+
+      // Safely sync with backend if running (non-blocking)
+      try {
+        await safePostJson('/api/user/register', {
           name: cleanName,
           email: cleanEmail,
           password
-        })
-      });
+        });
+      } catch {}
 
-      const data = await res.json();
-      if (!res.ok) {
-        if (res.status === 409 || data.code === 'EMAIL_ALREADY_EXISTS') {
-          setError('An account with this email already exists. Please switch to Sign In below.');
-        } else {
-          setError(data.error || 'Unable to create account. Please try again.');
-        }
+      setSuccessMsg(`Account created successfully! Welcome to Tuhfat Al-Ilm Academy, ${cleanName}!`);
+      setTimeout(() => {
+        onAuthSuccess(studentUser);
+        onNavigate('home');
+      }, 400);
+      return;
+    } catch (fbErr: any) {
+      if (fbErr?.code === 'auth/email-already-in-use') {
+        setError('An account with this email already exists. Please switch to Sign In above.');
+        return;
+      }
+      if (fbErr?.code === 'auth/weak-password') {
+        setError('Password is too weak. Please use at least 6 characters with a combination of letters & numbers.');
+        return;
+      }
+      if (fbErr?.code === 'auth/invalid-email') {
+        setError('Please enter a valid email address.');
         return;
       }
 
-      if (data.user) {
-        setSuccessMsg(`Account created successfully! Welcome to Tuhfat Al-Ilm, ${data.user.name}!`);
-        setTimeout(() => {
-          onAuthSuccess(data.user);
-          onNavigate('home');
-        }, 500);
-      }
-    } catch {
-      setError('Unable to connect to the server. Please check your internet connection.');
+      // If Firebase failed, fallback to safePostJson if server is running
+      try {
+        const data = await safePostJson('/api/user/register', {
+          name: cleanName,
+          email: cleanEmail,
+          password
+        });
+        if (data && data.user) {
+          setSuccessMsg(`Account created successfully! Welcome to Tuhfat Al-Ilm, ${data.user.name}!`);
+          setTimeout(() => {
+            onAuthSuccess(data.user);
+            onNavigate('home');
+          }, 400);
+          return;
+        }
+      } catch {}
+
+      setError(fbErr?.message || 'Unable to create account. Please check your details and try again.');
     } finally {
       setLoading(false);
     }
@@ -220,26 +261,28 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
     setLoading(true);
     try {
-      const res = await fetch('/api/user/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cleanEmail })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Unable to process password reset.');
+      await sendPasswordResetEmail(auth, cleanEmail);
+      setSuccessMsg(`Password reset instructions have been sent to ${cleanEmail}. Please check your inbox or spam folder.`);
+      return;
+    } catch (fbErr: any) {
+      if (fbErr?.code === 'auth/user-not-found') {
+        setError('No account found with this email address.');
         return;
       }
 
-      setSuccessMsg('Reset code generated! Please enter your code and new password below.');
-      if (data.code) {
-        setResetCode(data.code);
-        setResetCodeHint(data.code);
-      }
-      setMode('reset');
-    } catch {
-      setError('Network error. Please check your connection.');
+      // Optional backend fallback if running
+      try {
+        const data = await safePostJson('/api/user/forgot-password', { email: cleanEmail });
+        if (data && data.code) {
+          setSuccessMsg('Reset code generated! Please enter your code and new password below.');
+          setResetCode(data.code);
+          setResetCodeHint(data.code);
+          setMode('reset');
+          return;
+        }
+      } catch {}
+
+      setError(fbErr?.message || 'Unable to process password reset. Please verify your email.');
     } finally {
       setLoading(false);
     }

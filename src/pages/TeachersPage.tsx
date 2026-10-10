@@ -1,39 +1,29 @@
-import React from 'react';
-import { PageId } from '../types';
+import React, { useState, useEffect } from 'react';
+import { PageId, Teacher } from '../types';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { ShieldCheck, GraduationCap, Award, Heart, CheckCircle2, ArrowRight, UserCheck, MessageCircle } from 'lucide-react';
+import { getStoredTeachers, saveStoredTeachers } from '../data/teachers';
 
 interface TeachersPageProps {
   onNavigate: (page: PageId, courseSlugOrName?: string) => void;
 }
 
 export const TeachersPage: React.FC<TeachersPageProps> = ({ onNavigate }) => {
-  const teachers = [
-    {
-      name: 'Qari Muhammad Anees',
-      role: 'Head Qari & Tajweed Specialist',
-      qualification: 'Certified Qari & Hafiz with Sanad',
-      experience: '10+ Years Teaching Experience',
-      specialty: 'Tajweed-o-Qirat, Nazra & Hifz Memorization',
-      desc: 'Specializes in phonetic articulation (Makharij), Tajweed rules, and guiding students through step-by-step Quran memorization with gentle feedback.'
-    },
-    {
-      name: 'Ustadha Fatima Al-Zahra',
-      role: 'Female Quran & Islamic Studies Tutor',
-      qualification: 'Degree in Islamic Studies & Certified Hafiza',
-      experience: '8 Years Teaching Sisters & Children',
-      specialty: 'Children’s Education, Sisters’ Tajweed & Islah',
-      desc: 'Dedicated female instructor providing comfortable 1-on-1 sessions for sisters and young children with patient pedagogy and structured Tarbiyah.'
-    },
-    {
-      name: 'Mawlana Hafiz Bilal',
-      role: 'Senior Islamic Scholar & Instructor',
-      qualification: 'Dars-e-Nizami Scholar & Certified Hafiz',
-      experience: '12+ Years Academic Experience',
-      specialty: 'Quran Translation, Fiqh & Basic Islamic Knowledge',
-      desc: 'Expert in verse-by-verse translation, contextual Tafsir highlights, and practical Salah/Fiqh guidance for beginners and adult learners.'
-    }
-  ];
+  const [teachers, setTeachers] = useState<Teacher[]>(getStoredTeachers);
+
+  useEffect(() => {
+    setTeachers(getStoredTeachers());
+
+    fetch('/api/teachers')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.teachers && Array.isArray(data.teachers) && data.teachers.length > 0) {
+          setTeachers(data.teachers);
+          saveStoredTeachers(data.teachers);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="py-10 sm:py-16 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
@@ -90,12 +80,16 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({ onNavigate }) => {
 
       {/* Faculty Showcase Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {teachers.map((t, idx) => (
+        {teachers.filter((t) => t.active !== false).map((t, idx) => (
           <ScrollReveal key={idx} direction="fade-up" delay={idx * 100}>
             <div className="h-full bg-white rounded-3xl border border-[#E2E8F0] p-7 flex flex-col justify-between shadow-sm hover:border-[#A7F3D0] hover:shadow-md transition-all">
               <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#064E3B] text-white flex items-center justify-center font-bold text-xl shadow-sm">
-                  {t.name.split(' ')[1]?.[0] || 'Q'}
+                <div className="w-14 h-14 rounded-2xl bg-[#064E3B] text-white flex items-center justify-center font-bold text-xl shadow-sm overflow-hidden shrink-0">
+                  {t.photoUrl ? (
+                    <img src={t.photoUrl} alt={t.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{t.name.split(' ')[1]?.[0] || t.name[0] || 'Q'}</span>
+                  )}
                 </div>
 
                 <div>

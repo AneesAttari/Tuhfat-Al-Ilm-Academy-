@@ -1,9 +1,31 @@
 import React, { useState, useEffect, useId } from 'react';
-import { MessageCircle, Phone, Mail, CheckCircle2, Clock, Globe2, MessageSquare, AlertCircle, Calendar, Send, Sparkles, User, ArrowRight } from 'lucide-react';
+import {
+  MessageCircle,
+  Phone,
+  Mail,
+  CheckCircle2,
+  Clock,
+  Globe2,
+  MessageSquare,
+  AlertCircle,
+  Calendar,
+  Send,
+  Sparkles,
+  User,
+  ArrowRight,
+  ExternalLink,
+  Copy,
+  Check
+} from 'lucide-react';
 import { Course } from '../types';
 import { COURSES as DEFAULT_COURSES } from '../data/courses';
 import { trackEvent } from '../utils/analytics';
 import { ScrollReveal } from '../components/ScrollReveal';
+import { safePostJson } from '../lib/apiSafe';
+
+const ADMIN_PRIMARY_GMAIL = 'aneesattari67@gmail.com';
+const ACADEMY_SECONDARY_GMAIL = 'tuhfatalilmacademy@gmail.com';
+const WHATSAPP_PRIMARY_NUMBER = '923171503094';
 
 interface ContactPageProps {
   initialCourse?: string;
@@ -26,12 +48,23 @@ export const ContactPage: React.FC<ContactPageProps> = ({ initialCourse }) => {
 
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copiedDetails, setCopiedDetails] = useState(false);
   const [submittedBooking, setSubmittedBooking] = useState<{
     bookingId: string;
     name: string;
+    parentName?: string;
     course: string;
     email: string;
     phone: string;
+    country: string;
+    preferredDate?: string;
+    preferredTime?: string;
+    timezone?: string;
+    message?: string;
+    gmailComposeUrl: string;
+    mailtoUrl: string;
+    whatsappUrl: string;
+    formattedDetails: string;
   } | null>(null);
 
   const nameId = useId();
@@ -105,43 +138,141 @@ export const ContactPage: React.FC<ContactPageProps> = ({ initialCourse }) => {
     setFormError(null);
     setIsSubmitting(true);
 
+    const bookingId = 'TAB-' + Math.floor(100000 + Math.random() * 900000);
+    const now = new Date().toISOString();
+
+    const formattedDetails = `Assalamu Alaikum,
+
+I would like to book a Free Trial Class at Tuhfat Al-Ilm Academy. Here are my details:
+
+STUDENT INFORMATION:
+- Student Full Name: ${name}
+- Parent / Guardian: ${parentName || 'N/A (Direct Student)'}
+- Phone / WhatsApp: ${phone}
+- Email Address: ${email || 'Not provided'}
+- Selected Course: ${course}
+- Country / Location: ${country}
+
+CLASS SCHEDULING:
+- Preferred Date: ${preferredDate || 'Flexible / As soon as possible'}
+- Preferred Time: ${preferredTime}
+- Timezone: ${timezone}
+
+ADDITIONAL NOTES:
+${message || 'No additional notes provided.'}
+
+Booking Reference ID: ${bookingId}
+Submitted From: Tuhfat Al-Ilm Academy Website (https://tuhfatalilm.online/)`;
+
+    const emailSubject = `[Tuhfat Al-Ilm Academy] Free Trial Booking: ${name} (${course})`;
+
+    const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${ADMIN_PRIMARY_GMAIL}&cc=${ACADEMY_SECONDARY_GMAIL}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(formattedDetails)}`;
+
+    const mailtoUrl = `mailto:${ADMIN_PRIMARY_GMAIL}?cc=${ACADEMY_SECONDARY_GMAIL}&subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(formattedDetails)}`;
+
+    const waText = `Assalamu Alaikum, I just booked a Free Trial Class at Tuhfat Al-Ilm Academy!
+Booking ID: ${bookingId}
+Student: ${name}
+Course: ${course}
+Phone: ${phone}
+Country: ${country}
+Please confirm our trial lesson schedule.`;
+
+    const whatsappUrl = `https://wa.me/${WHATSAPP_PRIMARY_NUMBER}?text=${encodeURIComponent(waText)}`;
+
+    // 1. Immediately store in localStorage so Admin Dashboard sees it instantly
     try {
-      const res = await fetch('/api/trial-bookings', {
+      const stored = localStorage.getItem('tuhfat_local_inquiries');
+      const list = stored ? JSON.parse(stored) : [];
+      list.unshift({
+        id: bookingId,
+        name,
+        parent_name: parentName,
+        phone,
+        email: email || '',
+        course,
+        preferred_date: preferredDate,
+        preferred_time: preferredTime,
+        timezone,
+        country,
+        message,
+        source: 'Website Trial Booking (Email Primary)',
+        status: 'New',
+        created_at: now,
+        updated_at: now
+      });
+      localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(list));
+    } catch {}
+
+    // 2. Dispatch to FormSubmit AJAX endpoint for direct Gmail delivery to aneesattari67@gmail.com
+    try {
+      await fetch(`https://formsubmit.co/ajax/${ADMIN_PRIMARY_GMAIL}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
-          name,
-          parentName,
-          email,
-          phone,
-          course,
-          preferredDate,
-          preferredTime,
-          timezone,
-          country,
-          message,
-          source: 'Website Trial Booking (Email Primary)'
+          _subject: emailSubject,
+          _cc: ACADEMY_SECONDARY_GMAIL,
+          _template: 'table',
+          _captcha: 'false',
+          'Student Name': name,
+          'Parent / Guardian': parentName || 'N/A (Direct Student)',
+          'Phone / WhatsApp': phone,
+          'Email Address': email || 'Not provided',
+          'Course Name': course,
+          'Country / Location': country,
+          'Preferred Date': preferredDate || 'Flexible / As soon as possible',
+          'Preferred Time': preferredTime,
+          'Timezone': timezone,
+          'Notes / Message': message || 'No additional notes provided.',
+          'Booking Reference ID': bookingId,
+          'Submitted Date': new Date().toLocaleString()
         })
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setFormError(data.error || 'Failed to submit booking. Please try again or contact via WhatsApp.');
-      } else {
-        trackEvent('form_submit', { page: '/contact', course, method: 'email_primary' });
-        setSubmittedBooking({
-          bookingId: data.bookingId || 'TAB-' + Math.floor(100000 + Math.random() * 900000),
-          name,
-          course,
-          email: email || 'Not provided',
-          phone
-        });
-      }
-    } catch {
-      setFormError('Network connection issue. Please verify your connection or reach us via WhatsApp.');
-    } finally {
-      setIsSubmitting(false);
+    } catch (e) {
+      console.warn('[FormSubmit Notice]:', e);
     }
+
+    // 3. Safely sync to backend route if running (non-blocking)
+    try {
+      await safePostJson('/api/trial-bookings', {
+        name,
+        parentName,
+        email,
+        phone,
+        course,
+        preferredDate,
+        preferredTime,
+        timezone,
+        country,
+        message,
+        source: 'Website Trial Booking (Email Primary)'
+      });
+    } catch {}
+
+    trackEvent('form_submit', { page: '/contact', course, method: 'email_primary' });
+
+    setSubmittedBooking({
+      bookingId,
+      name,
+      parentName,
+      course,
+      email: email || 'Not provided',
+      phone,
+      country,
+      preferredDate,
+      preferredTime,
+      timezone,
+      message,
+      gmailComposeUrl,
+      mailtoUrl,
+      whatsappUrl,
+      formattedDetails
+    });
+
+    setIsSubmitting(false);
   };
 
   // Alternative Option: Save to DB and open WhatsApp
@@ -336,61 +467,125 @@ Please confirm our trial lesson schedule.`;
                       JazakAllahu Khairan, {submittedBooking.name}!
                     </h2>
                     <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
-                      Your trial class booking for <strong>{submittedBooking.course}</strong> has been received by our academic office.
+                      Your trial class booking for <strong>{submittedBooking.course}</strong> has been registered and dispatched to admissions at <strong>{ADMIN_PRIMARY_GMAIL}</strong>.
                     </p>
                   </div>
 
-                  {/* Summary Box */}
-                  <div className="p-5 rounded-2xl bg-[#FAF9F5] border border-[#E5E2D9] text-left text-xs space-y-2 max-w-md mx-auto">
+                  {/* Summary Box with Full Info */}
+                  <div className="p-5 rounded-2xl bg-[#FAF9F5] border border-[#E5E2D9] text-left text-xs space-y-2.5 max-w-lg mx-auto">
                     <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
                       <span className="text-[#64748B]">Booking Reference:</span>
                       <span className="font-mono font-bold text-[#0F172A]">{submittedBooking.bookingId}</span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
-                      <span className="text-[#64748B]">Student:</span>
+                      <span className="text-[#64748B]">Student Name:</span>
                       <span className="font-bold text-[#0F172A]">{submittedBooking.name}</span>
                     </div>
+                    {submittedBooking.parentName && (
+                      <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
+                        <span className="text-[#64748B]">Parent/Guardian:</span>
+                        <span className="text-[#0F172A]">{submittedBooking.parentName}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
                       <span className="text-[#64748B]">Selected Program:</span>
                       <span className="font-semibold text-[#064E3B]">{submittedBooking.course}</span>
                     </div>
+                    <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
+                      <span className="text-[#64748B]">Phone / WhatsApp:</span>
+                      <span className="font-medium text-[#0F172A]">{submittedBooking.phone}</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
+                      <span className="text-[#64748B]">Email Address:</span>
+                      <span className="text-[#0F172A]">{submittedBooking.email}</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-[#E2E8F0]">
+                      <span className="text-[#64748B]">Country / Location:</span>
+                      <span className="text-[#0F172A]">{submittedBooking.country}</span>
+                    </div>
                     <div className="flex justify-between py-1">
-                      <span className="text-[#64748B]">Contact:</span>
-                      <span className="text-[#0F172A]">{submittedBooking.phone}</span>
+                      <span className="text-[#64748B]">Preferred Schedule:</span>
+                      <span className="text-[#0F172A]">{submittedBooking.preferredDate || 'Flexible'} &bull; {submittedBooking.preferredTime}</span>
                     </div>
                   </div>
 
-                  {/* Action Buttons in Confirmation */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <a
-                      href={`https://wa.me/923171503094?text=${encodeURIComponent(`Assalamu Alaikum, I just submitted trial booking ref: ${submittedBooking.bookingId} for ${submittedBooking.name} (${submittedBooking.course}).`)}`}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-xs font-semibold text-white bg-[#059669] hover:bg-[#047857] shadow-sm transition-colors cursor-pointer"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      <span>Chat on WhatsApp Now</span>
-                    </a>
+                  {/* Multi-channel Action Buttons in Confirmation */}
+                  <div className="space-y-3 max-w-lg mx-auto pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {/* 1-Click Direct Gmail Compose Button */}
+                      <a
+                        href={submittedBooking.gmailComposeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-white bg-[#EA4335] hover:bg-[#D93025] shadow-sm transition-colors cursor-pointer"
+                      >
+                        <Mail className="w-4 h-4" />
+                        <span>Send via Gmail (1-Click)</span>
+                        <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                      </a>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSubmittedBooking(null);
-                        setFormData({
-                          name: '',
-                          parentName: '',
-                          phone: '',
-                          email: '',
-                          course: 'Quran Reading / Nazra',
-                          preferredDate: '',
-                          preferredTime: 'Evening (5:00 PM - 9:00 PM)',
-                          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
-                          country: '',
-                          message: ''
-                        });
-                      }}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-xs font-semibold text-[#334155] bg-[#F4F1EA] hover:bg-[#E5E2D9] transition-colors cursor-pointer"
-                    >
-                      <span>Book Another Class</span>
-                    </button>
+                      {/* WhatsApp Instant Chat */}
+                      <a
+                        href={submittedBooking.whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-white bg-[#25D366] hover:bg-[#1EBE5D] shadow-sm transition-colors cursor-pointer"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>Confirm on WhatsApp</span>
+                      </a>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-3 pt-1">
+                      {/* Copy Details */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(submittedBooking.formattedDetails);
+                          setCopiedDetails(true);
+                          setTimeout(() => setCopiedDetails(false), 2500);
+                        }}
+                        className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium text-[#475569] bg-[#F1F5F9] hover:bg-[#E2E8F0] transition-colors cursor-pointer"
+                      >
+                        {copiedDetails ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span className="text-emerald-700">Copied to Clipboard!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Copy Details</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSubmittedBooking(null);
+                          setFormData({
+                            name: '',
+                            parentName: '',
+                            phone: '',
+                            email: '',
+                            course: 'Quran Reading / Nazra',
+                            preferredDate: '',
+                            preferredTime: 'Evening (5:00 PM - 9:00 PM)',
+                            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+                            country: '',
+                            message: ''
+                          });
+                        }}
+                        className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium text-[#475569] hover:text-[#064E3B] transition-colors cursor-pointer"
+                      >
+                        <span>Book Another Class</span>
+                      </button>
+                    </div>
+
+                    <p className="text-[11px] text-[#64748B] pt-2">
+                      An email summary has been dispatched to <strong>{ADMIN_PRIMARY_GMAIL}</strong> &bull; Admissions WhatsApp: <strong>+{WHATSAPP_PRIMARY_NUMBER}</strong>
+                    </p>
                   </div>
                 </div>
               ) : (

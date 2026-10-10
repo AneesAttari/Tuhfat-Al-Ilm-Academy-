@@ -7,7 +7,10 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export const OFFICIAL_LOGO_SRC = '/Tuhfat_Al_Ilm_Academy_Logo.png';
+export const LOGO_HEADER_SRC = '/tuhfat-al-ilm-header.png';
+export const LOGO_STACKED_SRC = '/tuhfat-al-ilm-logo.png';
+export const LOGO_FAVICON_SRC = '/tuhfat-al-ilm-favicon.png';
+export const OFFICIAL_LOGO_SRC = '/tuhfat-al-ilm-header.png';
 
 export const Logo: React.FC<LogoProps> = ({
   className = '',
@@ -15,34 +18,29 @@ export const Logo: React.FC<LogoProps> = ({
   iconOnly = false,
   size = 'md'
 }) => {
-  // Dimensions for various sizes (preserving 1536:1128 aspect ratio)
+  // Dimensions for various sizes
   const dimensions = {
-    sm: { iconWidth: 52, iconHeight: 38, textSize: 'text-sm' },
-    md: { iconWidth: 65, iconHeight: 48, textSize: 'text-lg' },
-    lg: { iconWidth: 92, iconHeight: 68, textSize: 'text-2xl' },
-    xl: { iconWidth: 130, iconHeight: 96, textSize: 'text-3xl' }
+    sm: { headerHeight: 36, iconSize: 36 },
+    md: { headerHeight: 46, iconSize: 48 },
+    lg: { headerHeight: 58, iconSize: 68 },
+    xl: { headerHeight: 72, iconSize: 96 }
   }[size];
-
-  // Official uploaded logo image element rendered directly with object-contain
-  const LogoIcon = () => (
-    <img
-      src={OFFICIAL_LOGO_SRC}
-      alt="Tuhfat Al-Ilm Academy Logo"
-      width={dimensions.iconWidth}
-      height={dimensions.iconHeight}
-      className="w-full h-full object-contain shrink-0 select-none pointer-events-none"
-      loading="eager"
-      decoding="async"
-    />
-  );
 
   if (iconOnly || variant === 'icon') {
     return (
       <div
         className={`inline-flex items-center justify-center ${className}`}
-        style={{ width: dimensions.iconWidth, height: dimensions.iconHeight }}
+        style={{ width: dimensions.iconSize, height: dimensions.iconSize }}
       >
-        <LogoIcon />
+        <img
+          src={LOGO_FAVICON_SRC}
+          alt="Tuhfat Al-Ilm Academy Icon"
+          width={dimensions.iconSize}
+          height={dimensions.iconSize}
+          className="w-full h-full object-contain shrink-0 select-none pointer-events-none"
+          loading="eager"
+          decoding="async"
+        />
       </div>
     );
   }
@@ -50,45 +48,29 @@ export const Logo: React.FC<LogoProps> = ({
   if (variant === 'full') {
     return (
       <div className={`flex flex-col items-center text-center ${className}`}>
-        <div style={{ width: dimensions.iconWidth * 1.8, height: dimensions.iconHeight * 1.8 }}>
-          <LogoIcon />
-        </div>
-        <div className="mt-3 flex flex-col items-center">
-          <span className="font-serif font-extrabold tracking-tight text-[#00583E] text-xl sm:text-2xl uppercase">
-            Tuhfat Al-Ilm
-          </span>
-          <div className="flex items-center gap-3 w-full justify-center my-1">
-            <div className="h-[1px] w-8 bg-[#C89B3C]" />
-            <span className="text-xs sm:text-sm font-semibold text-[#C89B3C] tracking-[0.25em] uppercase">
-              Academy
-            </span>
-            <div className="h-[1px] w-8 bg-[#C89B3C]" />
-          </div>
-          <span className="text-[10px] sm:text-xs font-medium text-[#A87E2B] tracking-[0.18em] uppercase">
-            Qur'an • Islamic Studies • Global Learning
-          </span>
-        </div>
+        <img
+          src={LOGO_STACKED_SRC}
+          alt="Tuhfat Al-Ilm Academy Logo"
+          style={{ width: dimensions.iconSize * 1.8, height: dimensions.iconSize * 1.8 }}
+          className="object-contain select-none pointer-events-none"
+          loading="eager"
+          decoding="async"
+        />
       </div>
     );
   }
 
-  // Horizontal variant (Header, Mobile Navigation & Footer)
+  // Horizontal variant (Header, Mobile Navigation Drawer & Footer)
   return (
-    <div className={`inline-flex items-center gap-3 ${className}`}>
-      <div
-        style={{ width: dimensions.iconWidth, height: dimensions.iconHeight }}
-        className="shrink-0 transition-transform group-hover:scale-105"
-      >
-        <LogoIcon />
-      </div>
-      <div className="flex flex-col text-left">
-        <span className={`font-bold text-[#00583E] tracking-tight leading-tight ${dimensions.textSize}`}>
-          Tuhfat Al-Ilm Academy
-        </span>
-        <span className="text-[11px] sm:text-xs text-[#C89B3C] font-medium tracking-wide">
-          Qur'an &amp; Islamic Studies
-        </span>
-      </div>
+    <div className={`inline-flex items-center ${className}`}>
+      <img
+        src={LOGO_HEADER_SRC}
+        alt="Tuhfat Al-Ilm Academy"
+        style={{ height: dimensions.headerHeight }}
+        className="w-auto max-w-full object-contain shrink-0 select-none pointer-events-none transition-transform group-hover:scale-[1.02]"
+        loading="eager"
+        decoding="async"
+      />
     </div>
   );
 };

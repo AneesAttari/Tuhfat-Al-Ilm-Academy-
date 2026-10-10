@@ -23,7 +23,19 @@
   Cache-Control: public, max-age=604800
   Content-Type: image/png
 
-/Tuhfat_Al_Ilm_Academy_Logo.png
+/tuhfat-al-ilm-*.png
+  Cache-Control: public, max-age=604800
+  Content-Type: image/png
+
+/website_header_horizontal.png
+  Cache-Control: public, max-age=604800
+  Content-Type: image/png
+
+/stacked_logo_no_bottom_divider.png
+  Cache-Control: public, max-age=604800
+  Content-Type: image/png
+
+/whatsapp_social_icon.png
   Cache-Control: public, max-age=604800
   Content-Type: image/png
 

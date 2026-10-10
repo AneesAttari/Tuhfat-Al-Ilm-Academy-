@@ -18,13 +18,37 @@ export type PageId =
 export type AdminTab =
   | 'overview'
   | 'analytics'
-  | 'content'
   | 'courses'
+  | 'teachers'
+  | 'content'
   | 'inquiries'
   | 'students'
   | 'announcements'
   | 'media'
   | 'settings';
+
+export interface Teacher {
+  id: string;
+  name: string;
+  role: string;
+  qualification: string;
+  experience: string;
+  specialty: string;
+  desc: string;
+  photoUrl?: string;
+  display_order?: number;
+  active?: boolean;
+}
+
+export interface MediaItem {
+  id: string;
+  filename: string;
+  title: string;
+  category: string;
+  size: string;
+  src: string;
+  uploadedAt: string;
+}
 
 export interface CourseFaq {
   question: string;

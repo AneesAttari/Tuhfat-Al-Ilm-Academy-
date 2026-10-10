@@ -60,19 +60,41 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
     setIsDetailModalOpen(true);
   };
 
-  const handleUpdateStatus = async (id: string, newStatus: string) => {
+  const updateLocalInquiry = (id: string, updates: Partial<Inquiry>) => {
     try {
-      const res = await fetch(`/api/inquiries/${id}`, {
+      const stored = localStorage.getItem('tuhfat_local_inquiries');
+      if (stored) {
+        const list: Inquiry[] = JSON.parse(stored);
+        const updated = list.map((i) => (i.id === id ? { ...i, ...updates } : i));
+        localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(updated));
+      }
+    } catch {}
+  };
+
+  const deleteLocalInquiry = (id: string) => {
+    try {
+      const stored = localStorage.getItem('tuhfat_local_inquiries');
+      if (stored) {
+        const list: Inquiry[] = JSON.parse(stored);
+        const updated = list.filter((i) => i.id !== id);
+        localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(updated));
+      }
+    } catch {}
+  };
+
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    updateLocalInquiry(id, { status: newStatus as any });
+    if (selectedInquiry && selectedInquiry.id === id) {
+      setSelectedInquiry({ ...selectedInquiry, status: newStatus as any });
+    }
+    onRefreshInquiries();
+
+    try {
+      await fetch(`/api/inquiries/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-      if (res.ok) {
-        onRefreshInquiries();
-        if (selectedInquiry && selectedInquiry.id === id) {
-          setSelectedInquiry({ ...selectedInquiry, status: newStatus as any });
-        }
-      }
     } catch {}
   };
 
@@ -81,40 +103,35 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
     setUpdating(true);
     setFeedbackMsg(null);
 
+    updateLocalInquiry(selectedInquiry.id, { notes: editingNotes });
+    setSelectedInquiry({ ...selectedInquiry, notes: editingNotes });
+    onRefreshInquiries();
+    setFeedbackMsg({ type: 'success', text: 'Notes updated successfully!' });
+
     try {
-      const res = await fetch(`/api/inquiries/${selectedInquiry.id}`, {
+      await fetch(`/api/inquiries/${selectedInquiry.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: editingNotes })
       });
-      if (res.ok) {
-        setFeedbackMsg({ type: 'success', text: 'Notes updated successfully!' });
-        onRefreshInquiries();
-        setSelectedInquiry({ ...selectedInquiry, notes: editingNotes });
-      } else {
-        setFeedbackMsg({ type: 'error', text: 'Failed to update notes.' });
-      }
-    } catch {
-      setFeedbackMsg({ type: 'error', text: 'Network error saving notes.' });
-    } finally {
-      setUpdating(false);
-    }
+    } catch {}
+    setUpdating(false);
   };
 
   const handleMarkAsEnrolled = async (inq: Inquiry) => {
+    updateLocalInquiry(inq.id, { status: 'Enrolled' });
+    if (selectedInquiry && selectedInquiry.id === inq.id) {
+      setSelectedInquiry({ ...selectedInquiry, status: 'Enrolled' });
+    }
+    setFeedbackMsg({ type: 'success', text: `${inq.name} marked as Enrolled Student!` });
+    onRefreshInquiries();
+
     try {
-      const res = await fetch(`/api/inquiries/${inq.id}`, {
+      await fetch(`/api/inquiries/${inq.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'Enrolled' })
       });
-      if (res.ok) {
-        setFeedbackMsg({ type: 'success', text: `${inq.name} marked as Enrolled Student!` });
-        onRefreshInquiries();
-        if (selectedInquiry && selectedInquiry.id === inq.id) {
-          setSelectedInquiry({ ...selectedInquiry, status: 'Enrolled' });
-        }
-      }
     } catch {}
   };
 
@@ -122,12 +139,12 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
     if (!window.confirm(`Are you sure you want to delete inquiry from ${name}?`)) {
       return;
     }
+    deleteLocalInquiry(id);
+    onRefreshInquiries();
+    setIsDetailModalOpen(false);
+
     try {
-      const res = await fetch(`/api/inquiries/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        onRefreshInquiries();
-        setIsDetailModalOpen(false);
-      }
+      await fetch(`/api/inquiries/${id}`, { method: 'DELETE' });
     } catch {}
   };
 

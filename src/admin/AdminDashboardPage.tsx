@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PageId, AdminUser, Inquiry, Course, Announcement, AnalyticsSummary, AdminTab } from '../types';
+import { PageId, AdminUser, Inquiry, Course, Announcement, AnalyticsSummary, AdminTab, Teacher } from '../types';
 import { Logo } from '../components/Logo';
 import { AdminOverviewView } from './AdminOverviewView';
 import { AnalyticsDashboard } from './analytics/AnalyticsDashboard';
@@ -7,12 +7,16 @@ import { ContentManager } from './content/ContentManager';
 import { AdminInquiriesView } from './inquiries/AdminInquiriesView';
 import { AdminStudentsView } from './students/AdminStudentsView';
 import { AdminAnnouncementsView } from './announcements/AdminAnnouncementsView';
+import { AdminTeachersView } from './teachers/AdminTeachersView';
 import { AdminMediaView } from './media/AdminMediaView';
 import { AdminSettingsView } from './settings/AdminSettingsView';
+import { getStoredTeachers, saveStoredTeachers } from '../data/teachers';
+import { safeGetJson } from '../lib/apiSafe';
 import {
   LayoutDashboard,
   BarChart3,
   BookOpen,
+  GraduationCap,
   MessageSquareQuote,
   Users,
   Bell,
@@ -51,6 +55,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>(getStoredTeachers);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
@@ -79,7 +84,9 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   // Fetch initial data
   const fetchAnalytics = () => {
-    fetch('/api/analytics/summary?range=30d')
+    fetch('/api/analytics/summary?range=30d', {
+      headers: { 'x-admin-email': admin.email }
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.summary) setAnalytics(data.summary);
@@ -88,34 +95,49 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   };
 
   const fetchInquiries = () => {
-    fetch('/api/inquiries')
-      .then((res) => res.json())
+    let localList: Inquiry[] = [];
+    try {
+      const stored = localStorage.getItem('tuhfat_local_inquiries');
+      if (stored) localList = JSON.parse(stored);
+    } catch {}
+
+    safeGetJson('/api/inquiries')
       .then((data) => {
-        if (data.inquiries) setInquiries(data.inquiries);
+        if (data && data.inquiries && Array.isArray(data.inquiries)) {
+          const ids = new Set(data.inquiries.map((i: any) => i.id));
+          const merged = [...data.inquiries, ...localList.filter((l) => !ids.has(l.id))];
+          setInquiries(merged);
+        } else if (localList.length > 0) {
+          setInquiries(localList);
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (localList.length > 0) setInquiries(localList);
+      });
   };
 
   const fetchCourses = () => {
-    fetch('/api/courses?all=true')
+    fetch('/api/courses?all=true', {
+      headers: { 'x-admin-email': admin.email }
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.courses) {
           const mapped: Course[] = data.courses.map((c: any) => ({
             id: c.id,
-            slug: c.id === 'nazra' ? 'quran-reading' : c.id === 'hifz' ? 'hifz-ul-quran' : c.id === 'translation' ? 'quran-translation' : c.id,
-            name: c.title,
+            slug: c.slug || (c.id === 'nazra' ? 'quran-reading' : c.id === 'hifz' ? 'hifz-ul-quran' : c.id === 'translation' ? 'quran-translation' : c.id),
+            name: c.title || c.name,
             category: c.category,
-            shortDesc: c.short_description,
-            detailedDesc: c.description,
-            suitableLearners: c.suitable_for,
-            iconName: c.icon,
-            features: [],
-            whatYouLearn: [],
-            learningApproach: '',
-            classFormat: '',
-            benefits: [],
-            faq: [],
+            shortDesc: c.short_description || c.shortDesc || '',
+            detailedDesc: c.description || c.detailedDesc || '',
+            suitableLearners: c.suitable_for || c.suitableLearners || '',
+            iconName: c.icon || c.iconName || 'BookOpen',
+            features: c.features || [],
+            whatYouLearn: c.whatYouLearn || c.what_you_learn || [],
+            learningApproach: c.learningApproach || c.learning_approach || '',
+            classFormat: c.classFormat || c.class_format || '',
+            benefits: c.benefits || [],
+            faq: c.faq || [],
             published: c.published,
             display_order: c.display_order,
             duration: c.duration,
@@ -129,8 +151,71 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       .catch(() => {});
   };
 
+  const fetchTeachers = () => {
+    fetch('/api/teachers?all=true', {
+      headers: { 'x-admin-email': admin.email }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.teachers && Array.isArray(data.teachers) && data.teachers.length > 0) {
+          setTeachers(data.teachers);
+          saveStoredTeachers(data.teachers);
+        } else {
+          setTeachers(getStoredTeachers());
+        }
+      })
+      .catch(() => {
+        setTeachers(getStoredTeachers());
+      });
+  };
+
+  const handleSaveTeacher = async (t: Teacher) => {
+    const isEdit = teachers.some((item) => item.id === t.id);
+    const url = isEdit ? `/api/teachers/${t.id}` : '/api/teachers';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+      await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-email': admin.email
+        },
+        body: JSON.stringify(t)
+      });
+    } catch (e) {
+      console.warn('[Teacher Save Fallback]:', e);
+    }
+
+    // Always update local state & fallback
+    const updated = isEdit
+      ? teachers.map((item) => (item.id === t.id ? t : item))
+      : [...teachers, t];
+    setTeachers(updated);
+    saveStoredTeachers(updated);
+    fetchTeachers();
+  };
+
+  const handleDeleteTeacher = async (id: string) => {
+    try {
+      await fetch(`/api/teachers/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-email': admin.email }
+      });
+    } catch (e) {
+      console.warn('[Teacher Delete Fallback]:', e);
+    }
+
+    const filtered = teachers.filter((t) => t.id !== id);
+    setTeachers(filtered);
+    saveStoredTeachers(filtered);
+    fetchTeachers();
+  };
+
   const fetchAnnouncements = () => {
-    fetch('/api/announcements?all=true')
+    fetch('/api/announcements?all=true', {
+      headers: { 'x-admin-email': admin.email }
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.announcements) setAnnouncements(data.announcements);
@@ -151,6 +236,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     fetchAnalytics();
     fetchInquiries();
     fetchCourses();
+    fetchTeachers();
     fetchAnnouncements();
     fetchSiteSettings();
   }, []);
@@ -159,6 +245,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'courses', label: 'Courses Directory', icon: BookOpen, badge: courses.length },
+    { id: 'teachers', label: 'Faculty & Teachers', icon: GraduationCap, badge: teachers.filter((t) => t.active !== false).length },
     { id: 'content', label: 'Site Content & CMS', icon: FileText },
     { id: 'inquiries', label: 'Inquiries & Trials', icon: MessageSquareQuote, badge: inquiries.filter((i) => i.status === 'New').length },
     { id: 'students', label: 'Students & Enrollments', icon: Users, badge: inquiries.filter((i) => i.status === 'Enrolled').length },
@@ -379,7 +466,17 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
               <AnalyticsDashboard onNavigateTab={(t) => handleTabClick(t as AdminTab)} />
             )}
 
-            {/* 3. Courses & Content */}
+            {/* 3. Faculty & Teachers */}
+            {activeTab === 'teachers' && (
+              <AdminTeachersView
+                teachers={teachers}
+                onRefreshTeachers={fetchTeachers}
+                onSaveTeacher={handleSaveTeacher}
+                onDeleteTeacher={handleDeleteTeacher}
+              />
+            )}
+
+            {/* 4. Courses & Content */}
             {(activeTab === 'content' || activeTab === 'courses') && (
               <ContentManager
                 courses={courses}
