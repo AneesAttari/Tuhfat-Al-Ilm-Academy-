@@ -239,7 +239,7 @@ export const AdminAnnouncementsView: React.FC<AdminAnnouncementsViewProps> = ({
                   type="text"
                   value={editingAnnouncement.short_text || ''}
                   onChange={(e) => setEditingAnnouncement({ ...editingAnnouncement, short_text: e.target.value })}
-                  placeholder="e.g. Limited slots available for evening one-to-one classes."
+                  placeholder="e.g. Limited slots available for evening Tajweed classes."
                   className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
                 />
               </div>

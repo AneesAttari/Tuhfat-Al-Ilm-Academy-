@@ -156,7 +156,7 @@ export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
             <div className="text-2xl font-bold text-[#0F172A]">
               {enrolledStudents.length}
             </div>
-            <div className="text-[11px] text-[#64748B]">Across all 10 programs</div>
+            <div className="text-[11px] text-[#64748B]">Across all {courses.length} programs</div>
           </div>
 
           {/* 3. New Enrollment Inquiries */}
@@ -353,7 +353,7 @@ export const AdminOverviewView: React.FC<AdminOverviewViewProps> = ({
               </div>
               <div className="space-y-0.5 flex-1">
                 <p className="font-semibold text-[#0F172A]">Curriculum Synchronized</p>
-                <p className="text-[11px] text-[#64748B]">10 structured Islamic courses verified and active.</p>
+                <p className="text-[11px] text-[#64748B]">{courses.length} structured Islamic courses verified and active.</p>
                 <p className="text-[10px] text-[#94A3B8]">System status: Healthy</p>
               </div>
             </div>

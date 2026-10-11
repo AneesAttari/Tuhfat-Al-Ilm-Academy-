@@ -33,7 +33,7 @@ All routes work directly in production:
 - `/` — Academy Homepage (Hero, Why Choose Us, Featured Courses, Curriculum, FAQ, CTA)
 - `/about` — About Us & Educational Philosophy
 - `/courses` — Comprehensive Course Catalog with category filters
-- `/courses/[slug]` — Dedicated Course Detail Pages for all 10 programs
+- `/courses/[slug]` — Dedicated Course Detail Pages for all 9 programs
 - `/teachers` — Qualified Faculty & Certified Scholars Profile
 - `/how-it-works` — Step-by-Step Enrollment & Class Onboarding
 - `/resources` — Free Islamic & Quranic Learning Resources

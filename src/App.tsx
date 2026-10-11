@@ -48,7 +48,7 @@ const BASE_PAGE_TITLES: Record<PageId, string> = {
 const PAGE_DESCRIPTIONS: Partial<Record<PageId, string>> = {
   home: 'Tuhfat Al-Ilm Academy provides accessible online Quran and Islamic education for children and adults around the world, including Nazra, Hifz, Tajweed, and Islamic studies.',
   about: 'Learn about Tuhfat Al-Ilm Academy, our qualified faculty, certified scholars, and structured online Quran teaching methodology.',
-  courses: 'Explore our 10 online Quran and Islamic programs: Hifz-e-Quran, Nazra Quran, Tajweed-o-Qirat, Quran Translation, Islamic Studies, and 1-on-1 coaching.',
+  courses: 'Explore our 9 online Quran and Islamic programs: Quran Reading / Nazra, Hifz-ul-Quran, Tajweed, Quran Translation, Islamic Studies, Basic Islamic Knowledge, Islah, Dua and Sunnah, and Children’s Islamic Education.',
   teachers: 'Meet our certified Huffaz, Qaris, and Islamic Scholars dedicated to structured 1-on-1 online teaching for children and adult learners.',
   'how-it-works': 'Discover our simple enrollment process: free trial class, schedule selection, personalized 1-on-1 tutoring, and regular progress tracking.',
   resources: 'Free Islamic and Quranic learning materials, Qaida pronunciation rules, Tajweed summary sheets, and authentic daily Adhkar.',
@@ -108,7 +108,7 @@ function parseRouteFromLocation(): RouteState {
   if (rawPath === '/health') return { page: 'health' };
   if (rawPath === '/login') return { page: 'login' };
   if (rawPath === '/register') return { page: 'register' };
-  if (rawPath === '/admin-login') return { page: 'admin-login' };
+  if (rawPath === '/admin-login' || rawPath === '/admin/login') return { page: 'admin-login' };
   if (rawPath === '/admin' || rawPath === '/admin-dashboard') return { page: 'admin-dashboard' };
   if (rawPath.startsWith('/admin/')) {
     const tab = rawPath.replace('/admin/', '') as AdminTab;

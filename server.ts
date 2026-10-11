@@ -229,6 +229,9 @@ async function initDatabase() {
   const courseCountRow = await dbQueryOne('SELECT COUNT(*) as count FROM courses');
   if (!courseCountRow || Number(courseCountRow.count) === 0) {
     await seedCoursesTable();
+  } else {
+    // Ensure one-to-one course is removed
+    await dbExecute("DELETE FROM courses WHERE id = 'one-to-one' OR slug = 'one-to-one-classes'");
   }
 
   // Seed site_settings if empty
@@ -533,29 +536,6 @@ async function seedCoursesTable() {
       faq: [
         { question: 'What is the minimum age to enroll?', answer: 'Children as young as 4 years old can join our introductory Qaida and storytelling classes.' },
         { question: 'Can class durations be kept short for young kids?', answer: 'Yes. We recommend 25-30 minute focused sessions for young children to keep them fully engaged and enthusiastic.' }
-      ]
-    },
-    {
-      id: 'one-to-one',
-      slug: 'one-to-one-classes',
-      title: 'One-to-One Classes',
-      category: 'Personalized Coaching',
-      short: "Personalized online learning according to the student's level and goals.",
-      desc: 'Our dedicated One-to-One coaching program provides total flexibility, bespoke curricula, and 100% individual teacher focus. Whether you need accelerated Quran recitation, specialized Tajweed mentoring, Arabic language basics, or a custom combination of subjects.',
-      suitable: 'Busy professionals, learners wanting accelerated progress, or students needing focused individual attention and flexible scheduling.',
-      icon: 'UserCheck',
-      order: 10,
-      duration: 'Custom / Flexible',
-      instructor: 'Dedicated Mentor',
-      level: 'Tailored',
-      features: ['100% individual teacher focus', 'Customized syllabus tailored to your goals', 'Flexible scheduling across all international timezones'],
-      whatYouLearn: ['Custom curriculum designed around your exact current knowledge and personal objectives', 'Accelerated learning pace adapted to how quickly you master each concept', 'Choice of specialized topics: Quran reading, advanced Tajweed, Arabic grammar, or Islamic studies', 'Direct personal mentorship and real-time error correction in every single session'],
-      learningApproach: '100% student-centric mentoring where the curriculum, pace, and schedule adapt entirely to your personal goals and learning style.',
-      classFormat: 'Exclusive 1-on-1 live sessions scheduled at your preferred daily or weekly times across any timezone.',
-      benefits: ['Fastest possible learning progress with zero distractions or divided teacher attention', 'Reschedule sessions flexibly around work, university, or travel commitments', 'Female instructors available for sisters and young children upon request'],
-      faq: [
-        { question: 'Can I choose my class timings and change them later if needed?', answer: 'Yes. Classes are scheduled at your convenience and can be adjusted with your teacher whenever your routine changes.' },
-        { question: 'Can female students request a female teacher?', answer: 'Yes, absolutely. We have qualified female teachers available for female students and children.' }
       ]
     }
   ];

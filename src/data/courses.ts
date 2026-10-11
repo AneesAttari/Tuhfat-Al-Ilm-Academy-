@@ -408,49 +408,6 @@ export const COURSES: Course[] = [
     ],
     published: 1,
     display_order: 9
-  },
-  {
-    id: 'one-to-one',
-    slug: 'one-to-one-classes',
-    name: 'One-to-One Classes',
-    category: 'Personalized Coaching',
-    shortDesc: "Personalized online learning according to the student's level and goals.",
-    detailedDesc: 'Dedicated one-to-one class slots allowing 100% individual teacher focus, flexible schedule arrangements, and a course pace customized exactly to your learning capacity. Whether you are a busy professional with unpredictable hours, an adult learner desiring privacy, a parent wanting dedicated focus for your child, or a student seeking rapid progress, this bespoke format fits your needs.',
-    suitableLearners: 'Busy professionals, learners wanting accelerated progress, or students needing focused individual attention.',
-    iconName: 'UserCheck',
-    features: [
-      '100% individual teacher focus',
-      'Flexible scheduling across timezones',
-      'Tailored syllabus and pacing'
-    ],
-    whatYouLearn: [
-      'Customized syllabus based on your current level assessment and personal goals',
-      'Option to combine multiple subjects (e.g. Quran recitation + Tajweed + Islamic Studies)',
-      '100% individual attention with immediate phonetic correction and feedback',
-      'Accelerated or relaxed pacing aligned exactly with your learning capacity',
-      'Dedicated schedule tailored to your exact work, school, or timezone requirements',
-      'Continuous one-on-one progress review and personalized homework plans'
-    ],
-    learningApproach: 'Bespoke individual curriculum where the teacher adapts the teaching style, pacing, and materials specifically to the student’s learning style.',
-    classFormat: '1-on-1 private video/audio sessions (30, 45, or 60 minutes) at mutually agreed times across any timezone.',
-    benefits: [
-      'Zero wasted time—every session is entirely devoted to your specific progress',
-      'Complete flexibility to reschedule or adjust class timings as needed',
-      'Comfortable, private environment for adult brothers and sisters',
-      'Fast-track your learning journey at twice the speed of group classes'
-    ],
-    faq: [
-      {
-        question: 'Can I change my schedule if my work shift changes?',
-        answer: 'Yes. We offer schedule flexibility to accommodate shifting work and academic commitments with advance notice.'
-      },
-      {
-        question: 'Can I study more than one course in my one-to-one classes?',
-        answer: 'Yes! Many students dedicate half of their class to Quran reading and the other half to Dua & Sunnah or Islamic Studies.'
-      }
-    ],
-    published: 1,
-    display_order: 10
   }
 ];
 

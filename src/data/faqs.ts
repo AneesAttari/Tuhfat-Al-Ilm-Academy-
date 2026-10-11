@@ -27,7 +27,7 @@ export const FAQS: FaqItem[] = [
   },
   {
     question: 'What courses do you offer?',
-    answer: 'We offer 10 structured programs: Quran Reading / Nazra, Hifz-ul-Quran, Tajweed, Quran Translation, Islamic Studies, Basic Islamic Knowledge, Islah / Character Development, Dua and Sunnah, Children’s Islamic Education, and customized One-to-One Classes.'
+    answer: 'We offer 9 structured programs: Quran Reading / Nazra, Hifz-ul-Quran, Tajweed, Quran Translation, Islamic Studies, Basic Islamic Knowledge, Islah / Character Development, Dua and Sunnah, and Children’s Islamic Education.'
   },
   {
     question: 'How can I contact the academy?',
