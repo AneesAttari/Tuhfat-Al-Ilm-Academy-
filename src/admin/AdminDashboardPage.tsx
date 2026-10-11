@@ -11,6 +11,7 @@ import { AdminTeachersView } from './teachers/AdminTeachersView';
 import { AdminMediaView } from './media/AdminMediaView';
 import { AdminSettingsView } from './settings/AdminSettingsView';
 import { getStoredTeachers, saveStoredTeachers } from '../data/teachers';
+import { COURSES } from '../data/courses';
 import { safeGetJson } from '../lib/apiSafe';
 import {
   LayoutDashboard,
@@ -54,7 +55,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   // Global data states
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<Course[]>(COURSES);
   const [teachers, setTeachers] = useState<Teacher[]>(getStoredTeachers);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
@@ -87,9 +88,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     fetch('/api/analytics/summary?range=30d', {
       headers: { 'x-admin-email': admin.email }
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return null;
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) return null;
+        return res.json();
+      })
       .then((data) => {
-        if (data.summary) setAnalytics(data.summary);
+        if (data && data.summary) setAnalytics(data.summary);
       })
       .catch(() => {});
   };
@@ -120,9 +126,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     fetch('/api/courses?all=true', {
       headers: { 'x-admin-email': admin.email }
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return null;
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) return null;
+        return res.json();
+      })
       .then((data) => {
-        if (data.courses) {
+        if (data && data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
           const mapped: Course[] = data.courses.map((c: any) => ({
             id: c.id,
             slug: c.slug || (c.id === 'nazra' ? 'quran-reading' : c.id === 'hifz' ? 'hifz-ul-quran' : c.id === 'translation' ? 'quran-translation' : c.id),
@@ -146,16 +157,25 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             image_url: c.image_url
           }));
           setCourses(mapped);
+        } else {
+          setCourses(COURSES);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setCourses(COURSES);
+      });
   };
 
   const fetchTeachers = () => {
     fetch('/api/teachers?all=true', {
       headers: { 'x-admin-email': admin.email }
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return null;
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) return null;
+        return res.json();
+      })
       .then((data) => {
         if (data && data.teachers && Array.isArray(data.teachers) && data.teachers.length > 0) {
           setTeachers(data.teachers);

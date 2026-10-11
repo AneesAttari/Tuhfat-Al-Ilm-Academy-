@@ -15,24 +15,24 @@ export const DEFAULT_TEACHERS: Teacher[] = [
   },
   {
     id: 'teacher-2',
-    name: 'Ustadha Fatima Al-Zahra',
-    role: 'Female Quran & Islamic Studies Tutor',
-    qualification: 'Degree in Islamic Studies & Certified Hafiza',
-    experience: '8 Years Teaching Sisters & Children',
-    specialty: 'Children’s Education, Sisters’ Tajweed & Islah',
-    desc: 'Dedicated female instructor providing comfortable 1-on-1 sessions for sisters and young children with patient pedagogy and structured Tarbiyah.',
+    name: 'Qari Muhammad Waqar',
+    role: 'Senior Qari & Quran Instructor',
+    qualification: 'Certified Qari & Hafiz-e-Quran',
+    experience: '8+ Years Teaching Experience',
+    specialty: 'Nazra Quran, Tajweed Rules & Hifz Guidance',
+    desc: 'Experienced Qari specializing in correct Arabic phonetics, clear Makharij articulation, and helping students recite the Holy Quran with Tajweed and confidence.',
     photoUrl: '',
     display_order: 2,
     active: true
   },
   {
     id: 'teacher-3',
-    name: 'Mawlana Hafiz Bilal',
+    name: 'Mawlana Ahmad Raza',
     role: 'Senior Islamic Scholar & Instructor',
     qualification: 'Dars-e-Nizami Scholar & Certified Hafiz',
-    experience: '12+ Years Academic Experience',
-    specialty: 'Quran Translation, Fiqh & Basic Islamic Knowledge',
-    desc: 'Expert in verse-by-verse translation, contextual Tafsir highlights, and practical Salah/Fiqh guidance for beginners and adult learners.',
+    experience: '10+ Years Academic Experience',
+    specialty: 'Quran Translation, Islamic Studies & Fiqh Essentials',
+    desc: 'Dedicated Islamic scholar expert in verse-by-verse translation, contextual Tafsir highlights, and practical Islamic knowledge for students of all ages.',
     photoUrl: '',
     display_order: 3,
     active: true
@@ -45,9 +45,19 @@ export function getStoredTeachers(): Teacher[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        // Automatic migration: If cache contains outdated teacher names, purge and use official faculty
+        const hasOutdatedTeacher = parsed.some(
+          (t: Teacher) => t.name.includes('Fatima') || t.name.includes('Bilal')
+        );
+        if (!hasOutdatedTeacher) {
+          return parsed;
+        }
       }
     }
+  } catch {}
+  // Save latest official teachers to localStorage
+  try {
+    localStorage.setItem('tuhfat_teachers', JSON.stringify(DEFAULT_TEACHERS));
   } catch {}
   return DEFAULT_TEACHERS;
 }

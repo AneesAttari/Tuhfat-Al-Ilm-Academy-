@@ -15,7 +15,12 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({ onNavigate }) => {
     setTeachers(getStoredTeachers());
 
     fetch('/api/teachers')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return null;
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) return null;
+        return res.json();
+      })
       .then((data) => {
         if (data && data.teachers && Array.isArray(data.teachers) && data.teachers.length > 0) {
           setTeachers(data.teachers);

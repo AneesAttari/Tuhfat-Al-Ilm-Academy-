@@ -620,24 +620,24 @@ async function seedTeachersTable() {
     },
     {
       id: 'teacher-2',
-      name: 'Ustadha Fatima Al-Zahra',
-      role: 'Female Quran & Islamic Studies Tutor',
-      qualification: 'Degree in Islamic Studies & Certified Hafiza',
-      experience: '8 Years Teaching Sisters & Children',
-      specialty: 'Children’s Education, Sisters’ Tajweed & Islah',
-      bio: 'Dedicated female instructor providing comfortable 1-on-1 sessions for sisters and young children with patient pedagogy and structured Tarbiyah.',
+      name: 'Qari Muhammad Waqar',
+      role: 'Senior Qari & Quran Instructor',
+      qualification: 'Certified Qari & Hafiz-e-Quran',
+      experience: '8+ Years Teaching Experience',
+      specialty: 'Nazra Quran, Tajweed Rules & Hifz Guidance',
+      bio: 'Experienced Qari specializing in correct Arabic phonetics, clear Makharij articulation, and helping students recite the Holy Quran with Tajweed and confidence.',
       photo_url: '',
       display_order: 2,
       active: 1
     },
     {
       id: 'teacher-3',
-      name: 'Mawlana Hafiz Bilal',
+      name: 'Mawlana Ahmad Raza',
       role: 'Senior Islamic Scholar & Instructor',
       qualification: 'Dars-e-Nizami Scholar & Certified Hafiz',
-      experience: '12+ Years Academic Experience',
-      specialty: 'Quran Translation, Fiqh & Basic Islamic Knowledge',
-      bio: 'Expert in verse-by-verse translation, contextual Tafsir highlights, and practical Salah/Fiqh guidance for beginners and adult learners.',
+      experience: '10+ Years Academic Experience',
+      specialty: 'Quran Translation, Islamic Studies & Fiqh Essentials',
+      bio: 'Dedicated Islamic scholar expert in verse-by-verse translation, contextual Tafsir highlights, and practical Islamic knowledge for students of all ages.',
       photo_url: '',
       display_order: 3,
       active: 1
@@ -2497,28 +2497,25 @@ async function startServer() {
     }
 
     const filename = path.basename(decodeURIComponent(req.params.filename));
-    const pathsToTry = [
-      path.resolve(process.cwd(), 'public', 'uploads', filename),
-      path.resolve(process.cwd(), 'public', filename),
-      path.resolve(process.cwd(), 'src', 'assets', 'images', filename)
-    ];
+    const uploadsDir = path.resolve(process.cwd(), 'public', 'uploads');
+    const uploadPath = path.resolve(uploadsDir, filename);
 
-    let deleted = false;
-    for (const targetPath of pathsToTry) {
-      if (fs.existsSync(targetPath)) {
-        try {
-          fs.unlinkSync(targetPath);
-          deleted = true;
-        } catch (e) {
-          console.error('[Delete Media Error]:', e);
-        }
-      }
+    // Prevent directory traversal: must stay strictly inside uploadsDir
+    if (!uploadPath.startsWith(uploadsDir)) {
+      res.status(400).json({ error: 'Invalid file path.' });
+      return;
     }
 
-    if (deleted) {
-      res.json({ success: true, message: 'Media asset deleted successfully.' });
+    if (fs.existsSync(uploadPath)) {
+      try {
+        fs.unlinkSync(uploadPath);
+        res.json({ success: true, message: 'Media asset deleted successfully.' });
+      } catch (e) {
+        console.error('[Delete Media Error]:', e);
+        res.status(500).json({ error: 'Failed to delete file from server storage.' });
+      }
     } else {
-      res.status(404).json({ error: 'File not found.' });
+      res.status(404).json({ error: 'File not found in uploaded assets.' });
     }
   });
 

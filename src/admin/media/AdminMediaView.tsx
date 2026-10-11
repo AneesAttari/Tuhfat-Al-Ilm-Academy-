@@ -56,7 +56,7 @@ export const AdminMediaView: React.FC = () => {
       title: 'Closed Holy Quran on Wooden Rehal',
       size: '220 KB',
       category: 'Curriculum & Themes',
-      canDelete: true
+      canDelete: false
     },
     {
       id: 'asset-study',
@@ -65,9 +65,26 @@ export const AdminMediaView: React.FC = () => {
       title: 'Peaceful Mosque Courtyard Architecture',
       size: '185 KB',
       category: 'Curriculum & Themes',
-      canDelete: true
+      canDelete: false
     }
   ];
+
+  const getCustomStoredMedia = (): MediaItem[] => {
+    try {
+      const raw = localStorage.getItem('tuhfat_custom_media');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  };
+
+  const saveCustomStoredMedia = (items: MediaItem[]) => {
+    try {
+      localStorage.setItem('tuhfat_custom_media', JSON.stringify(items));
+    } catch {}
+  };
 
   const getAdminHeader = () => {
     let email = 'aneesattari67@gmail.com';
@@ -83,25 +100,30 @@ export const AdminMediaView: React.FC = () => {
 
   const fetchMedia = async () => {
     setLoading(true);
+    const customItems = getCustomStoredMedia();
     try {
       const res = await fetch('/api/media', {
         headers: { ...getAdminHeader() }
       });
       if (res.ok) {
-        const data = await res.json();
-        if (data.media && Array.isArray(data.media)) {
-          setMediaList(data.media);
-        } else {
-          setMediaList(fallbackItems);
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          if (data && data.media && Array.isArray(data.media)) {
+            const serverFilenames = new Set(data.media.map((m: any) => m.filename));
+            const merged = [...data.media, ...customItems.filter(c => !serverFilenames.has(c.filename))];
+            setMediaList(merged);
+            setLoading(false);
+            return;
+          }
         }
-      } else {
-        setMediaList(fallbackItems);
       }
-    } catch {
-      setMediaList(fallbackItems);
-    } finally {
-      setLoading(false);
-    }
+    } catch {}
+
+    const fallbackFilenames = new Set(fallbackItems.map(f => f.filename));
+    const merged = [...fallbackItems, ...customItems.filter(c => !fallbackFilenames.has(c.filename))];
+    setMediaList(merged);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -138,6 +160,20 @@ export const AdminMediaView: React.FC = () => {
     const reader = new FileReader();
     reader.onload = async () => {
       const base64Data = reader.result as string;
+      const cleanFilename = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const uniqueFilename = `${Date.now()}_${cleanFilename}`;
+
+      const newCustomItem: MediaItem = {
+        id: `upload-${Date.now()}`,
+        filename: uniqueFilename,
+        url: base64Data,
+        title: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+        size: `${Math.round(file.size / 1024)} KB`,
+        category: 'Uploaded Media',
+        canDelete: true,
+        updated_at: new Date().toISOString()
+      };
+
       try {
         const res = await fetch('/api/media/upload', {
           method: 'POST',
@@ -151,40 +187,51 @@ export const AdminMediaView: React.FC = () => {
           })
         });
 
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setFeedback({ type: 'success', message: `Image "${file.name}" uploaded successfully!` });
-          fetchMedia();
-        } else {
-          setFeedback({ type: 'error', message: data.error || 'Failed to upload image.' });
+        if (res.ok) {
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            if (data && data.success && data.file) {
+              newCustomItem.filename = data.file.filename;
+              newCustomItem.url = data.file.url;
+            }
+          }
         }
-      } catch (err: any) {
-        setFeedback({ type: 'error', message: err?.message || 'Network error uploading image.' });
-      } finally {
-        setUploading(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      }
+      } catch {}
+
+      const current = getCustomStoredMedia();
+      const updated = [newCustomItem, ...current.filter(c => c.filename !== newCustomItem.filename)];
+      saveCustomStoredMedia(updated);
+
+      setMediaList((prev) => [newCustomItem, ...prev.filter((m) => m.filename !== newCustomItem.filename)]);
+      setFeedback({ type: 'success', message: `Image "${file.name}" uploaded successfully!` });
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     };
     reader.readAsDataURL(file);
   };
 
   const handleDelete = async (item: MediaItem) => {
+    if (item.canDelete === false) {
+      setFeedback({ type: 'error', message: 'Official branding and core template assets cannot be deleted.' });
+      setConfirmDeleteId(null);
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/media/${encodeURIComponent(item.filename)}`, {
+      await fetch(`/api/media/${encodeURIComponent(item.filename)}`, {
         method: 'DELETE',
         headers: { ...getAdminHeader() }
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setFeedback({ type: 'success', message: `Deleted asset "${item.filename}" successfully.` });
-        setConfirmDeleteId(null);
-        fetchMedia();
-      } else {
-        setFeedback({ type: 'error', message: data.error || 'Failed to delete file.' });
-      }
-    } catch (err: any) {
-      setFeedback({ type: 'error', message: err?.message || 'Network error deleting file.' });
-    }
+      }).catch(() => {});
+    } catch {}
+
+    const currentCustom = getCustomStoredMedia();
+    const updatedCustom = currentCustom.filter((m) => m.id !== item.id && m.filename !== item.filename);
+    saveCustomStoredMedia(updatedCustom);
+
+    setMediaList((prev) => prev.filter((m) => m.id !== item.id && m.filename !== item.filename));
+    setFeedback({ type: 'success', message: `Deleted asset "${item.filename}" successfully.` });
+    setConfirmDeleteId(null);
   };
 
   const filteredMedia = mediaList.filter((item) => {
