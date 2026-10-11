@@ -26,8 +26,8 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import heroImg from '../assets/images/quran_hero_learning_1791212029554.jpg';
-import studyImg from '../assets/images/quran_tajweed_reading_1791212054850.jpg';
+import heroImg from '../assets/images/closed_quran_rehal_1791716784314.jpg';
+import mosqueImg from '../assets/images/peaceful_mosque_courtyard_1791716797053.jpg';
 
 interface HomePageProps {
   onNavigate: (page: PageId, courseSlugOrName?: string) => void;
@@ -177,7 +177,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     <div className="relative aspect-[4/3] sm:aspect-[16/11] rounded-xl overflow-hidden bg-[#064E3B]/10">
                       <img
                         src={heroImg}
-                        alt="Holy Quran open on an authentic wooden carved stand with warm natural lighting"
+                        alt="A respectfully placed closed Quran-e-Pak on a wooden rehal."
                         className="w-full h-full object-cover object-center transform hover:scale-102 transition-transform duration-500"
                         loading="eager"
                         referrerPolicy="no-referrer"
@@ -438,8 +438,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <ScrollReveal direction="fade-right">
                 <div className="rounded-2xl overflow-hidden border border-[#E2E8F0] shadow-md">
                   <img
-                    src={studyImg}
-                    alt="Quran and study notebook in a calm learning atmosphere"
+                    src={mosqueImg}
+                    alt="A peaceful mosque courtyard in soft natural daylight."
                     className="w-full h-auto aspect-[4/3] object-cover"
                     loading="lazy"
                     referrerPolicy="no-referrer"

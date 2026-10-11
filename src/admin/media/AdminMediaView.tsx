@@ -13,8 +13,8 @@ import {
   RefreshCw,
   FolderOpen
 } from 'lucide-react';
-import heroImg from '../../assets/images/quran_hero_learning_1791212029554.jpg';
-import studyImg from '../../assets/images/quran_tajweed_reading_1791212054850.jpg';
+import heroImg from '../../assets/images/closed_quran_rehal_1791716784314.jpg';
+import mosqueImg from '../../assets/images/peaceful_mosque_courtyard_1791716797053.jpg';
 
 interface MediaItem {
   id: string;
@@ -42,27 +42,27 @@ export const AdminMediaView: React.FC = () => {
   const fallbackItems: MediaItem[] = [
     {
       id: 'branding-logo',
-      filename: 'Tuhfat_Al_Ilm_Academy_Logo.png',
-      url: '/Tuhfat_Al_Ilm_Academy_Logo.png',
+      filename: 'tuhfat-al-ilm-logo.png',
+      url: '/tuhfat-al-ilm-logo.png',
       title: 'Tuhfat Al-Ilm Academy Official Logo',
-      size: '298 KB',
+      size: '207 KB',
       category: 'Official Branding',
-      canDelete: true
+      canDelete: false
     },
     {
       id: 'asset-hero',
-      filename: 'quran_hero_learning_1791212029554.jpg',
+      filename: 'closed_quran_rehal_1791716784314.jpg',
       url: heroImg,
-      title: 'Quran Hero Showcase (Authentic Carved Stand)',
+      title: 'Closed Holy Quran on Wooden Rehal',
       size: '220 KB',
       category: 'Curriculum & Themes',
       canDelete: true
     },
     {
       id: 'asset-study',
-      filename: 'quran_tajweed_reading_1791212054850.jpg',
-      url: studyImg,
-      title: 'Tajweed Study & Reading Atmosphere',
+      filename: 'peaceful_mosque_courtyard_1791716797053.jpg',
+      url: mosqueImg,
+      title: 'Peaceful Mosque Courtyard Architecture',
       size: '185 KB',
       category: 'Curriculum & Themes',
       canDelete: true
@@ -320,7 +320,7 @@ export const AdminMediaView: React.FC = () => {
                     alt={item.title}
                     className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300 bg-neutral-50"
                     onError={(e: any) => {
-                      e.target.src = '/Tuhfat_Al_Ilm_Academy_Logo.png';
+                      e.target.src = '/tuhfat-al-ilm-logo.png';
                     }}
                   />
                   <span className="absolute top-3 left-3 px-2 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-semibold backdrop-blur-xs">

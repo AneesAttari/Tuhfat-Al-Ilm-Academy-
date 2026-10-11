@@ -2,7 +2,7 @@ import React from 'react';
 import { PageId } from '../types';
 import { ArrowRight, Compass, Heart, Users, BookOpen, CheckCircle2 } from 'lucide-react';
 import { ScrollReveal } from '../components/ScrollReveal';
-import studyImg from '../assets/images/quran_tajweed_reading_1791212054850.jpg';
+import mosqueImg from '../assets/images/peaceful_mosque_courtyard_1791716797053.jpg';
 
 interface AboutPageProps {
   onNavigate: (page: PageId) => void;
@@ -45,8 +45,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             <div className="lg:col-span-6">
               <div className="rounded-2xl overflow-hidden border border-[#E2E8F0] shadow-sm">
                 <img
-                  src={studyImg}
-                  alt="Studying the Quran with notes in an educational setting"
+                  src={mosqueImg}
+                  alt="A peaceful mosque courtyard in soft natural daylight."
                   className="w-full h-auto aspect-[16/10] object-cover"
                   loading="lazy"
                   referrerPolicy="no-referrer"

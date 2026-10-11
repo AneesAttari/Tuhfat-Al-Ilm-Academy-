@@ -866,6 +866,16 @@ async function startServer() {
   await initDatabase();
 
   const app = express();
+
+  // Canonical 301 redirect from www to non-www domain (prevents redirect loops and unifies indexing)
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const host = req.headers.host;
+    if (host && host.toLowerCase().startsWith('www.tuhfatalilm.online')) {
+      return res.redirect(301, `https://tuhfatalilm.online${req.originalUrl}`);
+    }
+    next();
+  });
+
   app.use(express.json({ limit: '25mb' }));
   app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
@@ -884,6 +894,12 @@ async function startServer() {
       database: isMysql ? 'Hostinger MySQL / MariaDB' : 'SQLite Local File',
       timestamp: new Date().toISOString()
     });
+  });
+
+  // Google Search Console Site Verification Endpoint
+  app.get('/google2a8139145bd6cca8.html', (_req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send('google-site-verification: google2a8139145bd6cca8.html');
   });
 
   // --- Normal User / Student Authentication Endpoints ---
