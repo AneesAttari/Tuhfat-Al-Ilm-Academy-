@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { PageId, AdminTab, User, Course, AdminUser } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { PWAInstallPromptBanner } from './components/PWAInstallButton';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { CoursesPage } from './pages/CoursesPage';
@@ -298,7 +297,6 @@ export default function App() {
         {renderContent()}
       </main>
       <Footer onNavigate={navigateTo} />
-      <PWAInstallPromptBanner />
     </div>
   );
 }

@@ -3,7 +3,7 @@
   "name": "Tuhfat Al-Ilm Academy",
   "short_name": "TuhfatIlm",
   "description": "International Online Islamic Academy providing structured Quran and Islamic education worldwide.",
-  "start_url": "/?source=pwa",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

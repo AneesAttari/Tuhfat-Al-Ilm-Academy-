@@ -17,7 +17,10 @@ import {
   ChevronDown,
   ChevronUp,
   Award,
-  BookOpen
+  BookOpen,
+  Baby,
+  Users,
+  HeartHandshake
 } from 'lucide-react';
 
 interface HowItWorksPageProps {
@@ -26,12 +29,13 @@ interface HowItWorksPageProps {
 
 export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [learnerTab, setLearnerTab] = useState<'children' | 'adults' | 'sisters'>('children');
 
   const STEPS = [
     {
       step: '01',
       title: 'Explore Courses & Submit Inquiry',
-      subtitle: 'Find the right program and share your goals',
+      subtitle: 'Find the right program and share your schedule goals',
       description:
         'Browse our curriculum of 9 specialized Quranic and Islamic programs for children and adults. Fill out our simple trial booking form or message our academic coordinator instantly on WhatsApp to discuss your goals.',
       icon: Compass,
@@ -45,7 +49,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
     {
       step: '02',
       title: 'Free 1-on-1 Trial Session',
-      subtitle: 'Experience our gentle teaching methodology',
+      subtitle: 'Experience our gentle, patient teaching methodology',
       description:
         'We arrange a complimentary 1-on-1 trial class via Zoom or Google Meet. You or your child meet a qualified Qari or Islamic scholar, test your audio/video setup, and evaluate current recitation or Qaida level.',
       icon: Video,
@@ -86,6 +90,45 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
     }
   ];
 
+  const LEARNER_CONTENT = {
+    children: {
+      title: 'For Children (Ages 4–12)',
+      subtitle: 'Playful, patient, and engaging foundation building',
+      description: 'Children learn best through positive reinforcement and patience. Our teachers use gentle encouragement, interactive digital QA, and proven Noorani Qaida methods to make Quran learning a joyful daily habit without pressure.',
+      points: [
+        'Interactive Qaida & Arabic letter recognition',
+        'Gamified praise & gentle pronunciation correction',
+        'Short 30-minute sessions suited for young attention spans',
+        'Daily progress updates for parents'
+      ],
+      icon: Baby
+    },
+    adults: {
+      title: 'For Adult Learners',
+      subtitle: 'Flexible timing & respectful, confidential guidance',
+      description: 'Whether you are starting from scratch as a beginner or perfecting your Tajweed and memorization (Hifz) as an adult, our expert scholars provide respectful, customized lessons tailored to your busy work schedule.',
+      points: [
+        'Late night & early morning slots across all time zones',
+        'Judgment-free, patient correction for beginners',
+        'Advanced Tajweed rules and Quran translation & tafseer',
+        'Direct connection with senior Qaris'
+      ],
+      icon: User
+    },
+    sisters: {
+      title: 'For Sisters & Young Girls',
+      subtitle: 'Qualified female Qari’ahs and comfortable learning',
+      description: 'We maintain strict privacy and comfort by offering dedicated certified female teachers (Qari’ahs and Alimah scholars) for sisters and young daughters in a secure online environment.',
+      points: [
+        '100% verified female faculty for sisters',
+        'Comfortable, private online environment',
+        'Flexible scheduling around household and work routine',
+        'Comprehensive Hifz, Tajweed, and Islamic studies'
+      ],
+      icon: Users
+    }
+  };
+
   const FAQS = [
     {
       q: 'What software or equipment is required for online classes?',
@@ -102,20 +145,24 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
     {
       q: 'What happens if we need to reschedule a class?',
       a: 'We understand family commitments and work changes. You can easily coordinate with your teacher or our coordinator to reschedule sessions with advance notice.'
+    },
+    {
+      q: 'Is there any commitment or fee for the trial class?',
+      a: 'No. Our trial class is 100% free with zero upfront fees or hidden commitments. You only enroll if you are completely satisfied with the teacher and teaching method.'
     }
   ];
 
   return (
-    <div className="py-8 sm:py-12 lg:py-16 space-y-16 sm:space-y-24">
+    <div className="py-10 sm:py-16 lg:py-20 space-y-20 lg:space-y-28">
       {/* 1. HERO HEADER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal direction="fade-up">
-          <div className="text-center max-w-3xl mx-auto space-y-3 sm:space-y-4">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#064E3B] py-1 px-3.5 bg-white rounded-full border border-[#E5E2D9] shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" aria-hidden="true" />
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#064E3B] py-1.5 px-4 bg-white rounded-full border border-[#E5E2D9] shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-[#059669]" aria-hidden="true" />
               <span>Simple 4-Step Learning Path</span>
               <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
-              <span>Online Worldwide</span>
+              <span>Available Worldwide 24/7</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#0F172A] [text-wrap:balance]">
@@ -129,8 +176,112 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         </ScrollReveal>
       </section>
 
-      {/* 2. THE 4-STEP ROADMAP (Interactive Timeline Cards) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 2. LEARNER TYPE TABS (Interactive Customization) */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal direction="fade-up">
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#E2E8F0] shadow-sm space-y-8">
+            <div className="text-center max-w-xl mx-auto space-y-2">
+              <span className="text-xs font-semibold text-[#064E3B] uppercase tracking-wider">
+                Tailored Experience
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#0F172A]">
+                Who Are You Learning For?
+              </h2>
+              <p className="text-sm text-[#475569]">
+                Select your learner category to see how our lessons are customized to your exact requirements.
+              </p>
+            </div>
+
+            {/* Interactive Tab Switcher */}
+            <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-[#FAF9F5] rounded-2xl border border-[#E5E2D9]">
+              {(['children', 'adults', 'sisters'] as const).map((tabKey) => {
+                const item = LEARNER_CONTENT[tabKey];
+                const TabIcon = item.icon;
+                const isActive = learnerTab === tabKey;
+                return (
+                  <button
+                    key={tabKey}
+                    type="button"
+                    onClick={() => {
+                      setLearnerTab(tabKey);
+                      trackEvent('how_it_works_tab_click', { tab: tabKey });
+                    }}
+                    className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-[#064E3B] text-white shadow-md'
+                        : 'text-[#4B5563] hover:text-[#064E3B] hover:bg-white/80'
+                    }`}
+                  >
+                    <TabIcon className="w-4 h-4" />
+                    <span>{item.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Tab Content Panel */}
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#FAF9F5] border border-[#E5E2D9] grid grid-cols-1 lg:grid-cols-12 gap-8 items-center animate-in fade-in duration-300">
+              <div className="lg:col-span-7 space-y-4">
+                <div className="inline-flex items-center gap-2 text-xs font-bold text-[#059669] px-3 py-1 bg-[#ECFDF5] rounded-full border border-[#A7F3D0]">
+                  <span>{LEARNER_CONTENT[learnerTab].subtitle}</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#0F172A]">
+                  {LEARNER_CONTENT[learnerTab].title}
+                </h3>
+                <p className="text-sm text-[#475569] leading-relaxed">
+                  {LEARNER_CONTENT[learnerTab].description}
+                </p>
+                <ul className="space-y-2.5 pt-2">
+                  {LEARNER_CONTENT[learnerTab].points.map((pt, i) => (
+                    <li key={i} className="flex items-center gap-2.5 text-xs sm:text-sm font-medium text-[#1E293B]">
+                      <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="lg:col-span-5 bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-4 text-center">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center shadow-2xs">
+                  {learnerTab === 'children' && <Baby className="w-7 h-7 text-[#059669]" />}
+                  {learnerTab === 'adults' && <User className="w-7 h-7 text-[#059669]" />}
+                  {learnerTab === 'sisters' && <Users className="w-7 h-7 text-[#059669]" />}
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-[#0F172A]">Ready to Get Started?</h4>
+                  <p className="text-xs text-[#64748B] mt-1">Book your free trial class today with zero commitment.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    trackEvent('how_it_works_trial_click', { category: learnerTab });
+                    if (onNavigate) onNavigate('contact');
+                  }}
+                  className="w-full py-3 bg-[#064E3B] hover:bg-[#043D2E] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5"
+                >
+                  <span>Book Free Trial Now</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
+      </section>
+
+      {/* 3. THE 4-STEP ROADMAP (Interactive Timeline Cards) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="text-center max-w-xl mx-auto space-y-2">
+          <span className="text-xs font-semibold text-[#064E3B] uppercase tracking-wider">
+            Step-by-Step Roadmap
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#0F172A]">
+            Your Journey in 4 Simple Steps
+          </h2>
+          <p className="text-sm text-[#475569]">
+            From your initial inquiry to your first live online class in under 24 hours.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {STEPS.map((s, idx) => {
             const Icon = s.icon;
@@ -151,9 +302,9 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
                       <span className="text-[11px] font-bold uppercase tracking-wider text-[#059669]">
                         {s.badge}
                       </span>
-                      <h2 className="text-lg font-bold text-[#0F172A] group-hover:text-[#064E3B] transition-colors">
+                      <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-[#064E3B] transition-colors">
                         {s.title}
-                      </h2>
+                      </h3>
                       <p className="text-xs font-medium text-[#475569]">
                         {s.subtitle}
                       </p>
@@ -174,7 +325,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
                   </div>
 
                   <div className="pt-5 mt-5 border-t border-[#F1F5F9] text-xs font-semibold text-[#064E3B] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                    <span>Learn More</span>
+                    <span>Explore Step</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
@@ -184,7 +335,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         </div>
       </section>
 
-      {/* 3. COMPARISON: TRADITIONAL VS TUHFAT ONLINE ACADEMY */}
+      {/* 4. COMPARISON: TRADITIONAL VS TUHFAT ONLINE ACADEMY */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal direction="fade-up">
           <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-sm p-6 sm:p-10 space-y-8">
@@ -230,7 +381,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               {/* Tuhfat Al-Ilm Online */}
               <div className="p-6 rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] space-y-4 shadow-2xs">
                 <div className="flex items-center gap-2.5 font-bold text-sm text-[#064E3B]">
-                  <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-[#059669]" />
                   <span>Tuhfat Al-Ilm Academy Online</span>
                 </div>
                 <ul className="space-y-3 text-xs text-[#064E3B]">
@@ -257,7 +408,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         </ScrollReveal>
       </section>
 
-      {/* 4. FREQUENTLY ASKED QUESTIONS */}
+      {/* 5. FREQUENTLY ASKED QUESTIONS */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal direction="fade-up">
           <div className="text-center max-w-2xl mx-auto mb-8">
@@ -311,7 +462,7 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         </div>
       </section>
 
-      {/* 5. CALL TO ACTION BANNER */}
+      {/* 6. CALL TO ACTION BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal direction="fade-up">
           <div className="bg-gradient-to-br from-[#064E3B] via-[#043D2E] to-[#022C22] rounded-3xl p-8 sm:p-12 text-white text-center space-y-6 shadow-xl relative overflow-hidden">

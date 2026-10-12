@@ -1,7 +1,7 @@
 // Service Worker for Tuhfat Al-Ilm Academy PWA
 // Provides offline capability, asset caching, and satisfies Chromium & Safari PWA installability criteria
 
-const CACHE_NAME = 'tuhfat-ilm-pwa-v1';
+const CACHE_NAME = 'tuhfat-ilm-pwa-v2';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -11,19 +11,20 @@ const PRECACHE_ASSETS = [
   '/favicon.ico',
   '/favicon-192x192.png',
   '/favicon-512x512.png',
-  '/apple-touch-icon.png',
-  '/tuhfat-al-ilm-header.png',
-  '/tuhfat-al-ilm-logo.png',
-  '/tuhfat-al-ilm-favicon.png'
+  '/apple-touch-icon.png'
 ];
 
-// Install: precache critical shell assets and activate immediately
+// Install: precache critical shell assets resiliently and activate immediately
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
-        console.warn('[PWA Service Worker] Precache warning:', err);
-      });
+      return Promise.allSettled(
+        PRECACHE_ASSETS.map((url) =>
+          cache.add(url).catch((err) => {
+            console.warn('[PWA Service Worker] Precache warning for:', url, err);
+          })
+        )
+      );
     }).then(() => {
       return self.skipWaiting();
     })
@@ -57,7 +58,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // API calls: Network only (or network with fast fallback)
+  // API calls: Network only
   if (url.pathname.startsWith('/api/')) {
     return;
   }
@@ -102,7 +103,6 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch((err) => {
-        // Offline asset fallback if available
         if (req.headers.get('accept')?.includes('image')) {
           return caches.match('/favicon-192x192.png');
         }
