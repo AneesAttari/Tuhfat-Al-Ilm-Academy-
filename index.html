@@ -30,8 +30,26 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="alternate" type="application/manifest+json" href="/site.webmanifest" />
     <meta name="theme-color" content="#064E3B" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TuhfatIlm" />
+    <meta name="application-name" content="Tuhfat Al-Ilm Academy" />
+
+    <!-- Early PWA Install Prompt Capture: Ensures Chrome beforeinstallprompt is never lost before React hydrates -->
+    <script>
+      (function() {
+        window.__pwaInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', function(e) {
+          e.preventDefault();
+          window.__pwaInstallPrompt = e;
+          window.dispatchEvent(new CustomEvent('pwa-prompt-captured'));
+        });
+      })();
+    </script>
 
     <!-- OpenGraph & Twitter Social Cards -->
     <meta property="og:image" content="https://tuhfatalilm.online/og-image.png" />

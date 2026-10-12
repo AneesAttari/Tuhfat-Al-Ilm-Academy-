@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, ArrowRight, User, LogOut, BookOpen, MessageSquare } from 'lucide-react';
 import { PageId, User as UserType } from '../types';
 import { Logo } from './Logo';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   currentPage: PageId;
@@ -291,7 +292,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Mobile Right: Profile Icon & Hamburger Toggle Button (WCAG 2.2 AA Target Size >= 44px) */}
-          <div className="flex items-center gap-2 lg:hidden">
+          <div className="flex items-center gap-1.5 sm:gap-2 lg:hidden">
             {currentUser ? (
               <button
                 type="button"
@@ -411,6 +412,9 @@ export const Header: React.FC<HeaderProps> = ({
               <ArrowRight className="w-4 h-4" />
             </button>
           )}
+
+          {/* PWA Install Action in Mobile Drawer */}
+          <PWAInstallButton variant="drawer" className="mb-3" />
 
           <button
             type="button"

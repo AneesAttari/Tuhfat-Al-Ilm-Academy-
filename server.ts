@@ -2796,6 +2796,31 @@ async function startServer() {
     });
   });
 
+  // Explicit PWA Endpoints: Manifest & Service Worker with required headers for Chrome installability
+  app.get(['/sw.js', '/service-worker.js'], (_req: Request, res: Response) => {
+    const swPath = path.resolve(process.cwd(), 'public', 'sw.js');
+    if (fs.existsSync(swPath)) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Service-Worker-Allowed', '/');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.sendFile(swPath);
+    } else {
+      res.status(404).send('Service worker not found');
+    }
+  });
+
+  app.get(['/manifest.json', '/site.webmanifest'], (_req: Request, res: Response) => {
+    const manifestPath = path.resolve(process.cwd(), 'public', 'manifest.json');
+    if (fs.existsSync(manifestPath)) {
+      res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.sendFile(manifestPath);
+    } else {
+      res.status(404).json({ error: 'Manifest not found' });
+    }
+  });
+
   // Production static file serving vs Vite dev server
   const distPath = path.resolve(process.cwd(), 'dist');
   if (process.env.NODE_ENV === 'production' && fs.existsSync(distPath)) {

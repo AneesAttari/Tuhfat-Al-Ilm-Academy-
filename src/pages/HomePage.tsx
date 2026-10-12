@@ -154,20 +154,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Content Column */}
             <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-center lg:text-left">
-              {/* Responsive Benefit Ribbon: Refined, unboxed and wrap-safe without two-line broken words */}
+              {/* Responsive Benefit Badges: Reflows cleanly on all screen widths without broken text */}
               <ScrollReveal direction="fade-up" delay={30}>
-                <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-x-2.5 sm:gap-x-3 gap-y-1.5 py-1.5 px-3.5 sm:px-4 bg-white/95 backdrop-blur-xs rounded-full border border-[#E5E2D9] shadow-2xs text-[11px] sm:text-xs font-semibold text-[#064E3B]">
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2 max-w-full">
+                  <span className="inline-flex items-center gap-1.5 py-1 px-3 bg-white/95 backdrop-blur-xs rounded-full border border-[#E5E2D9] shadow-2xs text-[11px] sm:text-xs font-semibold text-[#064E3B] whitespace-nowrap">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" aria-hidden="true" />
                     Structured Curriculum
                   </span>
-                  <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5 py-1 px-3 bg-white/95 backdrop-blur-xs rounded-full border border-[#E5E2D9] shadow-2xs text-[11px] sm:text-xs font-semibold text-[#064E3B] whitespace-nowrap">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" aria-hidden="true" />
                     Qualified Teachers
                   </span>
-                  <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1.5 py-1 px-3 bg-white/95 backdrop-blur-xs rounded-full border border-[#E5E2D9] shadow-2xs text-[11px] sm:text-xs font-semibold text-[#064E3B] whitespace-nowrap">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" aria-hidden="true" />
                     One-to-One Attention
                   </span>
