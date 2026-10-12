@@ -51,12 +51,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sync Firebase authentication state with both client and backend session
   useEffect(() => {
+    console.log('[AuthContext] Initializing Firebase Auth state observer...');
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('[AuthContext] onAuthStateChanged triggered:', {
+        hasFirebaseUser: Boolean(user),
+        email: user?.email || null,
+        uid: user?.uid || null
+      });
       setFirebaseUser(user);
 
       if (user && user.email) {
         const cleanEmail = user.email.toLowerCase().trim();
         const userIsAdmin = isAuthorizedAdmin(cleanEmail);
+        console.log('[AuthContext] User authenticated in Firebase:', { cleanEmail, userIsAdmin });
 
         if (userIsAdmin) {
           const adminObj: AdminUser = {
@@ -65,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setAdminUser(adminObj);
           saveAdminSession(adminObj);
+          console.log('[AuthContext] Admin session restored and persisted for:', cleanEmail);
 
           // Sync session with academy backend so backend-protected routes also accept calls
           try {
@@ -74,12 +82,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               firebaseUid: user.uid,
               idToken: token
             });
+            console.log('[AuthContext] Backend session sync successful for admin:', cleanEmail);
           } catch (e) {
-            console.error('[Firebase Auth Sync Error]:', e);
+            console.warn('[AuthContext] Backend session sync warning (non-fatal in static hosting):', e);
           }
         } else {
           setAdminUser(null);
           clearAdminSession();
+          console.log('[AuthContext] User is not an authorized admin. Cleared admin session.');
         }
 
         // Student / Normal user session sync
@@ -91,25 +101,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           auth_provider: 'google'
         });
       } else {
+        console.log('[AuthContext] No active Firebase user found. Checking local storage / backend session fallback...');
         // If not logged into Firebase, check saved local admin session or backend
         const savedSession = getSavedAdminSession();
         if (savedSession) {
           setAdminUser(savedSession);
+          console.log('[AuthContext] Restored admin session from local storage:', savedSession.email);
         } else {
           try {
             const data = await safeGetJson('/api/auth/session');
             if (data && data.authenticated && data.admin && isAuthorizedAdmin(data.admin.email)) {
               setAdminUser(data.admin);
               saveAdminSession(data.admin);
+              console.log('[AuthContext] Restored admin session from backend session API:', data.admin.email);
             } else {
               setAdminUser(null);
+              console.log('[AuthContext] No valid saved admin session or backend session found.');
             }
-          } catch {
+          } catch (e) {
             setAdminUser(null);
+            console.log('[AuthContext] Backend session check failed or unavailable:', e);
           }
         }
       }
 
+      console.log('[AuthContext] Auth initialization complete. Setting loading to false.');
       setLoading(false);
     });
 

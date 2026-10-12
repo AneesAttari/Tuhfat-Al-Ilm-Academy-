@@ -330,6 +330,25 @@ async function seedAdminUsers() {
   }
 }
 
+const COURSE_CANONICAL_IMAGES: Record<string, string> = {
+  'nazra': '/images/Courses/nazra-quran-course.webp',
+  'quran-reading': '/images/Courses/nazra-quran-course.webp',
+  'hifz': '/images/Courses/hifz-quran-course.webp',
+  'hifz-ul-quran': '/images/Courses/hifz-quran-course.webp',
+  'tajweed': '/images/Courses/tajweed-quran-course.webp',
+  'translation': '/images/Courses/quran-translation-course.webp',
+  'quran-translation': '/images/Courses/quran-translation-course.webp',
+  'islamic-studies': '/images/Courses/islamic-studies-course.webp',
+  'basic-knowledge': '/images/Courses/basic-islamic-knowledge-course.webp',
+  'basic-islamic-knowledge': '/images/Courses/basic-islamic-knowledge-course.webp',
+  'islah': '/images/Courses/islah-and-character-development-course.webp',
+  'islah-character-development': '/images/Courses/islah-and-character-development-course.webp',
+  'dua-sunnah': '/images/Courses/dua-and-sunna-course.webp',
+  'dua-and-sunnah': '/images/Courses/dua-and-sunna-course.webp',
+  'children': '/images/Courses/childrens-islamic-education-course.webp',
+  'childrens-islamic-education': '/images/Courses/childrens-islamic-education-course.webp'
+};
+
 async function seedCoursesTable() {
   const seedCourses = [
     {
@@ -552,7 +571,7 @@ async function seedCoursesTable() {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       c.id, c.slug, c.title, c.category, c.short, c.desc, c.suitable, c.icon, c.order,
-      c.duration, c.instructor, c.level, '',
+      c.duration, c.instructor, c.level, COURSE_CANONICAL_IMAGES[c.id] || '',
       JSON.stringify(c.features), JSON.stringify(c.whatYouLearn),
       c.learningApproach, c.classFormat,
       JSON.stringify(c.benefits), JSON.stringify(c.faq),
@@ -1772,9 +1791,11 @@ async function startServer() {
       try { if (c.faq) faq = JSON.parse(c.faq); } catch {}
 
       const computedSlug = c.slug || (c.id === 'nazra' ? 'quran-reading' : c.id === 'hifz' ? 'hifz-ul-quran' : c.id === 'translation' ? 'quran-translation' : c.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+      const resolvedImageUrl = (c.image_url && c.image_url.trim()) ? c.image_url : (COURSE_CANONICAL_IMAGES[c.id] || COURSE_CANONICAL_IMAGES[computedSlug] || '/images/Courses/nazra-quran-course.webp');
 
       return {
         ...c,
+        image_url: resolvedImageUrl,
         slug: computedSlug,
         name: c.title,
         shortDesc: c.short_description,
@@ -1816,10 +1837,12 @@ async function startServer() {
     try { if (course.faq) faq = JSON.parse(course.faq); } catch {}
 
     const computedSlug = course.slug || (course.id === 'nazra' ? 'quran-reading' : course.id === 'hifz' ? 'hifz-ul-quran' : course.id === 'translation' ? 'quran-translation' : course.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+    const resolvedImageUrl = (course.image_url && course.image_url.trim()) ? course.image_url : (COURSE_CANONICAL_IMAGES[course.id] || COURSE_CANONICAL_IMAGES[computedSlug] || '/images/Courses/nazra-quran-course.webp');
 
     res.json({
       course: {
         ...course,
+        image_url: resolvedImageUrl,
         slug: computedSlug,
         name: course.title,
         shortDesc: course.short_description,

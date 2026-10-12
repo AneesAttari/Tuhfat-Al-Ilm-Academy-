@@ -72,14 +72,22 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      {/* Main Professional Sticky Header (Starts immediately - no top bar) */}
+      {/* Skip to Main Content Link for Keyboard and Screen Reader Accessibility (WCAG 2.2 AA) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#064E3B] focus:text-white focus:text-xs focus:font-semibold focus:rounded-xl focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to main content
+      </a>
+
+      {/* Main Professional Sticky Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E5E2D9] transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
           {/* Logo / Brand Name - always points to "/" */}
           <button
             type="button"
             onClick={() => handleNavClick('home')}
-            className="flex items-center group text-left focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:ring-offset-2 rounded-lg p-1 cursor-pointer"
+            className="flex items-center group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 rounded-lg p-1 cursor-pointer"
             aria-label="Tuhfat Al-Ilm Academy - Home"
           >
             <Logo variant="horizontal" size="md" />
@@ -282,14 +290,15 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Mobile Right: Profile Icon & Hamburger Toggle Button */}
+          {/* Mobile Right: Profile Icon & Hamburger Toggle Button (WCAG 2.2 AA Target Size >= 44px) */}
           <div className="flex items-center gap-2 lg:hidden">
             {currentUser ? (
               <button
                 type="button"
                 onClick={() => handleNavClick('home')}
-                className="w-9 h-9 rounded-xl bg-[#064E3B] text-white flex items-center justify-center text-xs font-bold shadow-xs cursor-pointer"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-[#064E3B] text-white flex items-center justify-center text-xs font-bold shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2"
                 title={currentUser.name}
+                aria-label={`Student account: ${currentUser.name}`}
               >
                 {getInitials(currentUser.name)}
               </button>
@@ -297,9 +306,9 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={() => handleNavClick('login')}
-                className="p-2 rounded-xl text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] transition-colors focus:outline-none focus:ring-2 focus:ring-[#064E3B] cursor-pointer"
-                title="Student Login / Sign Up"
-                aria-label="Student Login / Sign Up"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 cursor-pointer flex items-center justify-center"
+                title="Student Sign In / Register"
+                aria-label="Student Sign In or Register"
               >
                 <User className="w-5 h-5" />
               </button>
@@ -308,9 +317,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={() => setMobileDrawerOpen(true)}
-              className="p-2.5 rounded-xl text-[#1E2320] bg-neutral-100 hover:bg-[#ECFDF5] hover:text-[#064E3B] focus:outline-none focus:ring-2 focus:ring-[#064E3B] transition-colors cursor-pointer"
+              className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl text-[#0F172A] bg-white hover:bg-[#FAF9F5] hover:text-[#064E3B] border border-[#E5E2D9] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 transition-colors cursor-pointer flex items-center justify-center shadow-2xs"
               aria-expanded={mobileDrawerOpen}
-              aria-label="Open navigation drawer"
+              aria-controls="mobile-nav-drawer"
+              aria-label="Open main navigation menu"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -332,6 +342,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Side Drawer sliding smoothly from the RIGHT */}
       <aside
+        id="mobile-nav-drawer"
         className={`fixed top-0 right-0 bottom-0 z-50 w-full max-w-xs sm:max-w-sm bg-white shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-out lg:hidden ${
           mobileDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}

@@ -1,5 +1,32 @@
 import { Course } from '../types';
 
+export const COURSE_IMAGES: Record<string, string> = {
+  'nazra': '/images/Courses/nazra-quran-course.webp',
+  'quran-reading': '/images/Courses/nazra-quran-course.webp',
+  'hifz': '/images/Courses/hifz-quran-course.webp',
+  'hifz-ul-quran': '/images/Courses/hifz-quran-course.webp',
+  'tajweed': '/images/Courses/tajweed-quran-course.webp',
+  'translation': '/images/Courses/quran-translation-course.webp',
+  'quran-translation': '/images/Courses/quran-translation-course.webp',
+  'islamic-studies': '/images/Courses/islamic-studies-course.webp',
+  'basic-knowledge': '/images/Courses/basic-islamic-knowledge-course.webp',
+  'basic-islamic-knowledge': '/images/Courses/basic-islamic-knowledge-course.webp',
+  'islah': '/images/Courses/islah-and-character-development-course.webp',
+  'islah-character-development': '/images/Courses/islah-and-character-development-course.webp',
+  'dua-sunnah': '/images/Courses/dua-and-sunna-course.webp',
+  'dua-and-sunnah': '/images/Courses/dua-and-sunna-course.webp',
+  'children': '/images/Courses/childrens-islamic-education-course.webp',
+  'childrens-islamic-education': '/images/Courses/childrens-islamic-education-course.webp'
+};
+
+export function getCourseImage(course?: Partial<Course> | null): string {
+  if (!course) return '/images/Courses/nazra-quran-course.webp';
+  if (course.image_url && course.image_url.trim().length > 0) return course.image_url;
+  if (course.id && COURSE_IMAGES[course.id]) return COURSE_IMAGES[course.id];
+  if (course.slug && COURSE_IMAGES[course.slug]) return COURSE_IMAGES[course.slug];
+  return '/images/Courses/nazra-quran-course.webp';
+}
+
 export const COURSES: Course[] = [
   {
     id: 'nazra',
@@ -49,6 +76,10 @@ export const COURSES: Course[] = [
         answer: 'All our core Nazra classes are conducted one-to-one, ensuring 100% individual attention from the teacher.'
       }
     ],
+    duration: '3 to 6 Months',
+    instructor: 'Certified Qari / Qariah',
+    level: 'Beginner to Intermediate',
+    image_url: '/images/Courses/nazra-quran-course.webp',
     published: 1,
     display_order: 1
   },
@@ -96,6 +127,10 @@ export const COURSES: Course[] = [
         answer: 'Equal or greater time is dedicated to revising previous portions (Sabaqi and Manzil) alongside learning new verses to guarantee long-term retention.'
       }
     ],
+    duration: '1 to 3 Years (Paced)',
+    instructor: 'Certified Hafiz-ul-Quran',
+    level: 'Intermediate to Advanced',
+    image_url: '/images/Courses/hifz-quran-course.webp',
     published: 1,
     display_order: 2
   },
@@ -144,6 +179,10 @@ export const COURSES: Course[] = [
         answer: 'Most students notice marked improvements in pronunciation and letter clarity within the first few weeks of regular classes.'
       }
     ],
+    duration: '3 to 4 Months',
+    instructor: 'Senior Tajweed Specialist',
+    level: 'All Levels',
+    image_url: '/images/Courses/tajweed-quran-course.webp',
     published: 1,
     display_order: 3
   },
@@ -191,6 +230,10 @@ export const COURSES: Course[] = [
         answer: 'Yes. In one-to-one classes, you can customize your curriculum to focus on Surahs of your choice.'
       }
     ],
+    duration: '6 to 12 Months',
+    instructor: 'Qualified Islamic Scholar',
+    level: 'All Levels',
+    image_url: '/images/Courses/quran-translation-course.webp',
     published: 1,
     display_order: 4
   },
@@ -234,6 +277,10 @@ export const COURSES: Course[] = [
         answer: 'Yes! Many students enroll in a blended plan combining 20 minutes of Quran with 20 minutes of Islamic studies.'
       }
     ],
+    duration: 'Ongoing Modular',
+    instructor: 'Curriculum Specialist',
+    level: 'All Levels',
+    image_url: '/images/Courses/islamic-studies-course.webp',
     published: 1,
     display_order: 5
   },
@@ -277,6 +324,10 @@ export const COURSES: Course[] = [
         answer: 'Yes. The teacher will listen to your recitations and guide you on the exact postures of Ruku, Sujood, and Tashahhud.'
       }
     ],
+    duration: '2 to 3 Months',
+    instructor: 'Resident Islamic Tutor',
+    level: 'Beginner / Reverts',
+    image_url: '/images/Courses/basic-islamic-knowledge-course.webp',
     published: 1,
     display_order: 6
   },
@@ -320,6 +371,10 @@ export const COURSES: Course[] = [
         answer: 'Very much so. Spiritual purification and character refinement are lifelong obligations for every believer.'
       }
     ],
+    duration: 'Ongoing Mentorship',
+    instructor: 'Senior Counselor & Mentor',
+    level: 'All Levels',
+    image_url: '/images/Courses/islah-and-character-development-course.webp',
     published: 1,
     display_order: 7
   },
@@ -363,6 +418,10 @@ export const COURSES: Course[] = [
         answer: 'Yes. Teachers practice repetitive recitation with children until the Dua is memorized fluently with correct pronunciation.'
       }
     ],
+    duration: '2 Months',
+    instructor: 'Quran & Hadith Tutor',
+    level: 'All Levels',
+    image_url: '/images/Courses/dua-and-sunna-course.webp',
     published: 1,
     display_order: 8
   },
@@ -406,6 +465,10 @@ export const COURSES: Course[] = [
         answer: 'Yes. Female and male teachers are available to accommodate family preferences.'
       }
     ],
+    duration: 'Ongoing (30-min sessions)',
+    instructor: 'Child Pedagogy Specialist',
+    level: 'Youth (Ages 4-15)',
+    image_url: '/images/Courses/childrens-islamic-education-course.webp',
     published: 1,
     display_order: 9
   }

@@ -256,7 +256,7 @@ export default function App() {
       case 'about':
         return <AboutPage onNavigate={navigateTo} />;
       case 'courses':
-        return <CoursesPage />;
+        return <CoursesPage onNavigate={navigateTo} />;
       case 'course-detail': {
         const selectedCourse = (route.courseSlug ? getCourseBySlug(route.courseSlug) : null) || COURSES[0];
         return <CourseDetailPage course={selectedCourse} onNavigate={navigateTo} />;
@@ -293,7 +293,7 @@ export default function App() {
         onNavigate={navigateTo}
         onLogout={userSignOut}
       />
-      <main className="flex-grow">
+      <main id="main-content" className="flex-grow">
         {renderContent()}
       </main>
       <Footer onNavigate={navigateTo} />

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Course, PageId } from '../types';
-import { getRelatedCourses } from '../data/courses';
+import { getRelatedCourses, getCourseImage } from '../data/courses';
 import { trackEvent } from '../utils/analytics';
 import { ScrollReveal } from '../components/ScrollReveal';
+import { CourseCard } from '../components/CourseCard';
 import {
   BookOpen,
   BookMarked,
@@ -234,6 +235,36 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ course, onNa
             </div>
           </div>
         </section>
+      </ScrollReveal>
+
+      {/* 3b. High-Definition Course Banner Showcase */}
+      <ScrollReveal direction="fade-up" delay={90}>
+        <div className="w-full aspect-[3/2] sm:aspect-[21/9] max-h-[460px] rounded-3xl overflow-hidden border border-[#E2E8F0] shadow-md bg-[#FAF9F5] relative">
+          <img
+            src={getCourseImage(course)}
+            alt={`${course.name} Official Banner - Tuhfat Al-Ilm Academy`}
+            width={1200}
+            height={800}
+            loading="eager"
+            decoding="sync"
+            fetchPriority="high"
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 flex flex-wrap items-center gap-2">
+            <span className="px-3.5 py-1 rounded-full text-xs font-bold text-[#064E3B] bg-white/95 backdrop-blur-xs border border-white/60 shadow-xs">
+              {course.category}
+            </span>
+            <span className="px-3.5 py-1 rounded-full text-xs font-semibold text-white bg-black/50 backdrop-blur-xs border border-white/20">
+              {course.duration || 'Flexible Schedule'}
+            </span>
+            {course.level && (
+              <span className="px-3.5 py-1 rounded-full text-xs font-semibold text-white bg-black/50 backdrop-blur-xs border border-white/20">
+                {course.level}
+              </span>
+            )}
+          </div>
+        </div>
       </ScrollReveal>
 
       {/* 4. Course Overview & Detailed Description */}
@@ -499,46 +530,17 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ course, onNa
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {relatedCourses.map((relCourse, idx) => {
-            const RelIcon = iconMap[relCourse.iconName] || BookOpen;
-            return (
-              <ScrollReveal key={relCourse.id} direction="fade-up" delay={idx * 100}>
-                <div className="h-full bg-white rounded-2xl border border-[#E2E8F0] p-6 flex flex-col justify-between hover:border-[#A7F3D0] hover:shadow-md transition-all group">
-                  <div>
-                    <div className="w-12 h-12 rounded-xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center mb-4 group-hover:bg-[#064E3B] group-hover:text-white transition-colors">
-                      <RelIcon className="w-6 h-6" />
-                    </div>
-                    <span className="text-xs font-medium text-[#64748B] block mb-1">
-                      {relCourse.category}
-                    </span>
-                    <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-[#064E3B] transition-colors">
-                      {relCourse.name}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-[#475569] mt-2 leading-relaxed line-clamp-3">
-                      {relCourse.shortDesc}
-                    </p>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-[#F1F5F9] flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        trackEvent('course_click', { course_id: relCourse.slug });
-                        onNavigate('course-detail', relCourse.slug);
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#064E3B] hover:underline cursor-pointer"
-                    >
-                      <span>Learn More</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-
-                    <span className="text-[11px] text-[#94A3B8]">1-on-1 Classes</span>
-                  </div>
-                </div>
-              </ScrollReveal>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 items-stretch">
+          {relatedCourses.map((relCourse, idx) => (
+            <ScrollReveal key={relCourse.id} direction="fade-up" delay={idx * 100}>
+              <CourseCard
+                course={relCourse}
+                onNavigate={onNavigate}
+                priority={false}
+                index={idx}
+              />
+            </ScrollReveal>
+          ))}
         </div>
       </section>
     </div>
