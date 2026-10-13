@@ -173,7 +173,7 @@ const InstallGuideModal: React.FC<InstallGuideModalProps> = ({ isIOS, isAndroid,
         <div className="flex items-center justify-between border-b border-[#E5E2D9] pb-3">
           <div className="flex items-center gap-2 text-[#064E3B] font-bold text-sm">
             <Smartphone className="w-5 h-5 text-[#059669]" />
-            <span>Install Tuhfat Al-Ilm App</span>
+            <span>Install Tuhfat-Al-Ilm App</span>
           </div>
           <button
             type="button"
@@ -355,7 +355,7 @@ export const PWAInstallPromptBanner: React.FC = () => {
           </div>
           <div className="min-w-0">
             <p className="text-xs sm:text-sm font-bold text-[#0F172A] truncate">
-              Install Tuhfat Al-Ilm App
+              Install Tuhfat-Al-Ilm App
             </p>
             <p className="text-[11px] text-[#475569] truncate">
               Download to home screen for 1-tap learning
