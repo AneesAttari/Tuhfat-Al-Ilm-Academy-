@@ -51,8 +51,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sync Firebase authentication state with both client and backend session
   useEffect(() => {
-    console.log('[AuthContext] Initializing Firebase Auth state observer...');
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribe: (() => void) | null = null;
+    const isAuthRoute = typeof window !== 'undefined' && (
+      window.location.pathname.startsWith('/admin') ||
+      window.location.pathname.startsWith('/login') ||
+      window.location.pathname.startsWith('/register')
+    );
+
+    const initObserver = () => {
+      console.log('[AuthContext] Initializing Firebase Auth state observer...');
+      unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('[AuthContext] onAuthStateChanged triggered:', {
         hasFirebaseUser: Boolean(user),
         email: user?.email || null,
@@ -128,9 +136,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('[AuthContext] Auth initialization complete. Setting loading to false.');
       setLoading(false);
     });
+  };
 
-    return () => unsubscribe();
-  }, []);
+  if (isAuthRoute) {
+    initObserver();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }
+
+  // Defer observer for public pages to ensure instant initial LCP and no main-thread blockage
+  let timerId: any = null;
+  let idleId: any = null;
+
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    idleId = (window as any).requestIdleCallback(initObserver, { timeout: 1500 });
+  } else {
+    timerId = setTimeout(initObserver, 1000);
+  }
+
+  return () => {
+    if (idleId && typeof window !== 'undefined' && (window as any).cancelIdleCallback) {
+      (window as any).cancelIdleCallback(idleId);
+    }
+    if (timerId) clearTimeout(timerId);
+    if (unsubscribe) unsubscribe();
+  };
+}, []);
 
   // Real Google Sign-In using Firebase Authentication popup with redirect fallback
   const loginWithGoogle = async (): Promise<{ success: boolean; admin?: AdminUser; user?: User; error?: string }> => {

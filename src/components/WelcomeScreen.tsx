@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 
 interface WelcomeScreenProps {
   onFinish?: () => void;
-  minDuration?: number; // duration in ms, default 1800ms
+  minDuration?: number; // duration in ms, default 1400ms
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   onFinish,
-  minDuration = 2000
+  minDuration = 1400
 }) => {
   const [visible, setVisible] = useState(true);
   const [fadingOut, setFadingOut] = useState(false);
@@ -92,15 +92,18 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
           <div className="absolute -inset-4 bg-gradient-to-tr from-[#9333EA]/15 via-[#C084FC]/25 to-[#D97706]/15 rounded-full blur-2xl animate-pulse" />
           
           <div className="relative p-3 bg-white/95 backdrop-blur-md rounded-3xl shadow-xl shadow-purple-950/10 border border-purple-100/70 transition-transform duration-700 hover:scale-[1.02]">
-            <img
-              src="/formal_full_logo.png"
-              alt="Tuhfat Al-Ilm Academy Official Logo"
-              width="260"
-              height="310"
-              className="w-48 h-auto sm:w-56 md:w-64 max-h-[46vh] object-contain drop-shadow-sm select-none pointer-events-none"
-              loading="eager"
-              decoding="sync"
-            />
+            <picture>
+              <source srcSet="/formal_full_logo.webp" type="image/webp" />
+              <img
+                src="/formal_full_logo.png"
+                alt="Tuhfat Al-Ilm Academy Official Logo"
+                width="260"
+                height="310"
+                className="w-48 h-auto sm:w-56 md:w-64 max-h-[46vh] object-contain drop-shadow-sm select-none pointer-events-none"
+                loading="eager"
+                decoding="sync"
+              />
+            </picture>
           </div>
         </div>
 

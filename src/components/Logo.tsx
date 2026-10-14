@@ -7,10 +7,12 @@ interface LogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export const LOGO_HEADER_SRC = '/tuhfat-al-ilm-header.png';
-export const LOGO_STACKED_SRC = '/tuhfat-al-ilm-logo.png';
-export const LOGO_FAVICON_SRC = '/tuhfat-al-ilm-favicon.png';
-export const OFFICIAL_LOGO_SRC = '/tuhfat-al-ilm-header.png';
+export const LOGO_HEADER_SRC = '/tuhfat-al-ilm-header.webp';
+export const LOGO_HEADER_FALLBACK = '/tuhfat-al-ilm-header.png';
+export const LOGO_STACKED_SRC = '/tuhfat-al-ilm-logo.webp';
+export const LOGO_STACKED_FALLBACK = '/tuhfat-al-ilm-logo.png';
+export const LOGO_FAVICON_SRC = '/tuhfat-al-ilm-favicon.webp';
+export const OFFICIAL_LOGO_SRC = '/tuhfat-al-ilm-header.webp';
 
 export const Logo: React.FC<LogoProps> = ({
   className = '',
@@ -49,16 +51,19 @@ export const Logo: React.FC<LogoProps> = ({
     const fullSize = Math.round(dimensions.iconSize * 1.8);
     return (
       <div className={`flex flex-col items-center text-center ${className}`}>
-        <img
-          src={LOGO_STACKED_SRC}
-          alt="Tuhfat Al-Ilm Academy Logo"
-          width={fullSize}
-          height={fullSize}
-          style={{ width: fullSize, height: fullSize }}
-          className="object-contain select-none pointer-events-none"
-          loading="eager"
-          decoding="async"
-        />
+        <picture>
+          <source srcSet={LOGO_STACKED_SRC} type="image/webp" />
+          <img
+            src={LOGO_STACKED_FALLBACK}
+            alt="Tuhfat Al-Ilm Academy Logo"
+            width={fullSize}
+            height={fullSize}
+            style={{ width: fullSize, height: fullSize }}
+            className="object-contain select-none pointer-events-none"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
       </div>
     );
   }
@@ -67,16 +72,19 @@ export const Logo: React.FC<LogoProps> = ({
   const headerWidth = Math.round(dimensions.headerHeight * (1600 / 440));
   return (
     <div className={`inline-flex items-center ${className}`}>
-      <img
-        src={LOGO_HEADER_SRC}
-        alt="Tuhfat Al-Ilm Academy"
-        width={headerWidth}
-        height={dimensions.headerHeight}
-        style={{ height: dimensions.headerHeight, width: 'auto' }}
-        className="w-auto max-w-full object-contain shrink-0 select-none pointer-events-none transition-transform group-hover:scale-[1.02]"
-        loading="eager"
-        decoding="async"
-      />
+      <picture className="inline-flex items-center">
+        <source srcSet={LOGO_HEADER_SRC} type="image/webp" />
+        <img
+          src={LOGO_HEADER_FALLBACK}
+          alt="Tuhfat Al-Ilm Academy"
+          width={headerWidth}
+          height={dimensions.headerHeight}
+          style={{ height: dimensions.headerHeight, width: 'auto' }}
+          className="w-auto max-w-full object-contain shrink-0 select-none pointer-events-none transition-transform group-hover:scale-[1.02]"
+          loading="eager"
+          decoding="async"
+        />
+      </picture>
     </div>
   );
 };

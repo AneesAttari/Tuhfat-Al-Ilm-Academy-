@@ -26,8 +26,8 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
-import heroImg from '../assets/images/closed_quran_rehal.webp';
-import mosqueImg from '../assets/images/peaceful_mosque_courtyard.webp';
+const heroImg = '/images/closed_quran_rehal.webp';
+const mosqueImg = '/images/peaceful_mosque_courtyard.webp';
 import { safeGetJson } from '../lib/apiSafe';
 
 interface HomePageProps {

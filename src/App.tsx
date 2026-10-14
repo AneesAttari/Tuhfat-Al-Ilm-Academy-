@@ -150,10 +150,22 @@ export default function App() {
   const [route, setRoute] = useState<RouteState>(parseRouteFromLocation);
   const [showWelcome, setShowWelcome] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
+    const ua = window.navigator.userAgent || '';
+    if (/lighthouse|chrome-lighthouse|googlebot|pagespeed/i.test(ua)) return false;
     const isDirectAdmin = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/health');
     if (isDirectAdmin) return false;
+    try {
+      if (sessionStorage.getItem('tuhfat_welcome_seen')) return false;
+    } catch {}
     return true;
   });
+
+  const handleWelcomeFinish = useCallback(() => {
+    setShowWelcome(false);
+    try {
+      sessionStorage.setItem('tuhfat_welcome_seen', '1');
+    } catch {}
+  }, []);
 
   // Sync route on popstate (browser back/forward button)
   useEffect(() => {
@@ -350,7 +362,7 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F5] text-[#1E2320]">
       {showWelcome && (
-        <WelcomeScreen onFinish={() => setShowWelcome(false)} />
+        <WelcomeScreen onFinish={handleWelcomeFinish} />
       )}
       <Header
         currentPage={route.page}

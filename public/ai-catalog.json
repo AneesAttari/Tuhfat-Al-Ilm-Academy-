@@ -1,11 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/ai-catalog.json",
-  "name": "Tuhfat-Al-Ilm Academy",
+  "name": "Tuhfat Al-Ilm Academy",
   "description": "International Online Islamic Academy providing structured Quran, Tajweed, Hifz, and Islamic studies education worldwide.",
   "url": "https://tuhfatalilm.online",
   "version": "1.0.0",
   "contact": {
-    "name": "Tuhfat-Al-Ilm Academic Admissions",
+    "name": "Tuhfat Al-Ilm Academic Admissions",
     "email": "tuhfatalilmacademy@gmail.com",
     "url": "https://tuhfatalilm.online/contact"
   },
@@ -21,13 +21,19 @@
       "id": "quran-reading-nazra",
       "name": "Quran Reading / Nazra",
       "description": "Foundational and fluent Quran recitation with Tajweed principles.",
-      "url": "https://tuhfatalilm.online/courses/nazra"
+      "url": "https://tuhfatalilm.online/courses/quran-reading"
     },
     {
       "id": "hifz-ul-quran",
       "name": "Hifz-ul-Quran Memorization",
       "description": "Comprehensive memorization curriculum with systematic revision.",
-      "url": "https://tuhfatalilm.online/courses/hifz"
+      "url": "https://tuhfatalilm.online/courses/hifz-ul-quran"
+    },
+    {
+      "id": "tajweed-o-qirat",
+      "name": "Tajweed-o-Qirat Rules",
+      "description": "Phonetics, articulation points (Makharij), and melodic Quranic recitation.",
+      "url": "https://tuhfatalilm.online/courses/tajweed"
     },
     {
       "id": "islamic-studies",
