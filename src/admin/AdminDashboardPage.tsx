@@ -105,13 +105,14 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const fetchInquiries = () => {
     let localList: Inquiry[] = [];
     try {
-      const stored = localStorage.getItem('tuhfat_local_inquiries');
+      const stored = localStorage.getItem('tuhfat_local_inquiries') || localStorage.getItem('tuhfat_inquiries_backup');
       if (stored) localList = JSON.parse(stored);
     } catch {}
 
     const applyMerged = (apiInquiries: Inquiry[] = [], firestoreInquiries: Inquiry[] = []) => {
       const map = new Map<string, Inquiry>();
-      [...apiInquiries, ...firestoreInquiries, ...localList].forEach((inq) => {
+      // Order of precedence: localList (preserves immediate status edits), then apiInquiries, then firestore
+      [...firestoreInquiries, ...apiInquiries, ...localList].forEach((inq) => {
         if (inq && inq.id) {
           map.set(inq.id, { ...inq, status: inq.status || 'New' });
         }
@@ -125,11 +126,16 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
       if (merged.length > 0) {
         setInquiries(merged);
+        try {
+          const serialized = JSON.stringify(merged);
+          localStorage.setItem('tuhfat_local_inquiries', serialized);
+          localStorage.setItem('tuhfat_inquiries_backup', serialized);
+        } catch {}
       }
     };
 
-    // 1. Try safeGetJson
-    safeGetJson('/api/inquiries')
+    // 1. Try safeGetJson with admin authentication headers
+    safeGetJson('/api/inquiries', { 'x-admin-email': admin.email })
       .then((data) => {
         const apiList = data && data.inquiries && Array.isArray(data.inquiries) ? data.inquiries : [];
         applyMerged(apiList);
@@ -138,7 +144,7 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
         applyMerged();
       });
 
-    // 2. Also try Firestore in background
+    // 2. Concurrently check Firestore in background
     try {
       const q = query(collection(db, 'inquiries'), limit(100));
       getDocs(q).then((snap) => {

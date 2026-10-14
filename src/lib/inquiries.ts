@@ -36,10 +36,17 @@ export interface SubmitTrialParams {
 }
 
 const LOCAL_STORAGE_KEY = 'tuhfat_local_inquiries';
+const BACKUP_STORAGE_KEY = 'tuhfat_inquiries_backup';
 
 export function getLocalInquiries(): InquiryRecord[] {
   try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    let raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(BACKUP_STORAGE_KEY);
+      if (raw) {
+        localStorage.setItem(LOCAL_STORAGE_KEY, raw);
+      }
+    }
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -52,7 +59,9 @@ export function saveLocalInquiry(record: InquiryRecord): void {
   try {
     const existing = getLocalInquiries();
     const updated = [record, ...existing.filter((item) => item.id !== record.id)];
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+    const serialized = JSON.stringify(updated);
+    localStorage.setItem(LOCAL_STORAGE_KEY, serialized);
+    localStorage.setItem(BACKUP_STORAGE_KEY, serialized);
   } catch (err) {
     console.warn('Unable to persist inquiry to localStorage:', err);
   }

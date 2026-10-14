@@ -2,11 +2,11 @@
  * Safely performs a POST request and only parses JSON if the response is JSON.
  * Protects against HTML error pages or SPA fallback index.html responses.
  */
-export async function safePostJson(url: string, data: any): Promise<any> {
+export async function safePostJson(url: string, data: any, customHeaders: Record<string, string> = {}): Promise<any> {
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...customHeaders },
       body: JSON.stringify(data)
     });
     const contentType = res.headers.get('content-type') || '';
@@ -22,9 +22,11 @@ export async function safePostJson(url: string, data: any): Promise<any> {
 /**
  * Safely performs a GET request and only parses JSON if the response is JSON.
  */
-export async function safeGetJson(url: string): Promise<any> {
+export async function safeGetJson(url: string, customHeaders: Record<string, string> = {}): Promise<any> {
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: customHeaders
+    });
     const contentType = res.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
       return await res.json();

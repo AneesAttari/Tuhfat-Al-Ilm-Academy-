@@ -76,11 +76,13 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
 
   const updateLocalInquiry = (id: string, updates: Partial<Inquiry>) => {
     try {
-      const stored = localStorage.getItem('tuhfat_local_inquiries');
+      const stored = localStorage.getItem('tuhfat_local_inquiries') || localStorage.getItem('tuhfat_inquiries_backup');
       if (stored) {
         const list: Inquiry[] = JSON.parse(stored);
         const updated = list.map((i) => (i.id === id ? { ...i, ...updates } : i));
-        localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(updated));
+        const serialized = JSON.stringify(updated);
+        localStorage.setItem('tuhfat_local_inquiries', serialized);
+        localStorage.setItem('tuhfat_inquiries_backup', serialized);
       }
     } catch {}
 
@@ -91,11 +93,13 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
 
   const deleteLocalInquiry = (id: string) => {
     try {
-      const stored = localStorage.getItem('tuhfat_local_inquiries');
+      const stored = localStorage.getItem('tuhfat_local_inquiries') || localStorage.getItem('tuhfat_inquiries_backup');
       if (stored) {
         const list: Inquiry[] = JSON.parse(stored);
         const updated = list.filter((i) => i.id !== id);
-        localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(updated));
+        const serialized = JSON.stringify(updated);
+        localStorage.setItem('tuhfat_local_inquiries', serialized);
+        localStorage.setItem('tuhfat_inquiries_backup', serialized);
       }
     } catch {}
 

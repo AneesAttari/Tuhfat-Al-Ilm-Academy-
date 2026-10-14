@@ -68,8 +68,18 @@ export const AdminStudentsView: React.FC<AdminStudentsViewProps> = ({ courses })
       const res = await fetch('/api/users');
       if (res.ok) {
         const json = await res.json();
-        if (json.users) setUsers(json.users);
+        if (json.users && Array.isArray(json.users)) {
+          setUsers(json.users);
+          try { localStorage.setItem('tuhfat_admin_users', JSON.stringify(json.users)); } catch {}
+          return;
+        }
       }
+    } catch {}
+
+    // Fallback to local storage if API is offline or running on static CDN
+    try {
+      const saved = localStorage.getItem('tuhfat_admin_users');
+      if (saved) setUsers(JSON.parse(saved));
     } catch {}
   };
 
@@ -78,8 +88,18 @@ export const AdminStudentsView: React.FC<AdminStudentsViewProps> = ({ courses })
       const res = await fetch('/api/students');
       if (res.ok) {
         const json = await res.json();
-        if (json.students) setStudents(json.students);
+        if (json.students && Array.isArray(json.students)) {
+          setStudents(json.students);
+          try { localStorage.setItem('tuhfat_admin_students', JSON.stringify(json.students)); } catch {}
+          return;
+        }
       }
+    } catch {}
+
+    // Fallback to local storage if API is offline or running on static CDN
+    try {
+      const saved = localStorage.getItem('tuhfat_admin_students');
+      if (saved) setStudents(JSON.parse(saved));
     } catch {}
   };
 

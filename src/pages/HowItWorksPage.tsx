@@ -40,6 +40,9 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         'Browse our curriculum of 9 specialized Quranic and Islamic programs for children and adults. Fill out our simple trial booking form or message our academic coordinator instantly on WhatsApp to discuss your goals.',
       icon: Compass,
       badge: 'Step 1 of 4',
+      actionLabel: 'Browse All Courses',
+      actionTarget: 'courses' as PageId,
+      actionHighlight: false,
       highlights: [
         'No commitment or upfront fees',
         'Tailored recommendations for children & adults',
@@ -54,6 +57,9 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         'We arrange a complimentary 1-on-1 trial class via Zoom or Google Meet. You or your child meet a qualified Qari or Islamic scholar, test your audio/video setup, and evaluate current recitation or Qaida level.',
       icon: Video,
       badge: 'Step 2 of 4',
+      actionLabel: 'Book a Free Trial',
+      actionTarget: 'contact' as PageId,
+      actionHighlight: true,
       highlights: [
         '100% free with zero obligation',
         'Friendly, patient, and encouraging instructors',
@@ -68,6 +74,9 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         'Choose your preferred weekly days and time slots across global time zones (USA, UK, Canada, Europe, Middle East, Australia). We finalize your regular schedule and assign your dedicated permanent teacher.',
       icon: Calendar,
       badge: 'Step 3 of 4',
+      actionLabel: 'Choose Your Schedule',
+      actionTarget: 'contact' as PageId,
+      actionHighlight: false,
       highlights: [
         'Flexible schedules around school and work',
         'Dedicated permanent instructor',
@@ -82,6 +91,9 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
         'Attend your scheduled online sessions from the comfort of home. Teachers share clear digital Quranic text, Tajweed rules, and structured notes on screen, providing undivided attention and constructive feedback every class.',
       icon: BookOpen,
       badge: 'Step 4 of 4',
+      actionLabel: 'Enroll Now',
+      actionTarget: 'contact' as PageId,
+      actionHighlight: true,
       highlights: [
         'Undivided 1-on-1 student focus',
         'Structured progress tracking and recitation reviews',
@@ -172,6 +184,43 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
             <p className="text-base sm:text-lg text-[#334155] leading-relaxed max-w-2xl mx-auto font-normal">
               We have designed a seamless, transparent, and supportive online learning journey for students of all ages—from absolute beginners starting Noorani Qaida to advanced Hifz students.
             </p>
+
+            {/* Quick Hero Actions */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  trackEvent('how_it_works_hero_trial_click');
+                  if (onNavigate) onNavigate('contact');
+                }}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[46px] rounded-xl text-xs sm:text-sm font-bold text-white bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#032A20] shadow-sm hover:shadow transition-all cursor-pointer"
+              >
+                <span>Book a Free Trial</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  trackEvent('how_it_works_hero_enroll_click');
+                  if (onNavigate) onNavigate('contact');
+                }}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[46px] rounded-xl text-xs sm:text-sm font-bold text-[#064E3B] bg-white hover:bg-[#FAF9F5] active:bg-[#F1F5F9] border border-[#CBD5E1] shadow-2xs transition-all cursor-pointer"
+              >
+                <span>Enroll Now</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  trackEvent('how_it_works_hero_courses_click');
+                  if (onNavigate) onNavigate('courses');
+                }}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-3 min-h-[46px] rounded-xl text-xs font-semibold text-[#475569] hover:text-[#064E3B] hover:bg-white/60 transition-colors cursor-pointer"
+              >
+                <span>Explore All 9 Courses &rarr;</span>
+              </button>
+            </div>
           </div>
         </ScrollReveal>
       </section>
@@ -251,17 +300,29 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
                   <h4 className="font-bold text-sm text-[#0F172A]">Ready to Get Started?</h4>
                   <p className="text-xs text-[#64748B] mt-1">Book your free trial class today with zero commitment.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    trackEvent('how_it_works_trial_click', { category: learnerTab });
-                    if (onNavigate) onNavigate('contact');
-                  }}
-                  className="w-full py-3 bg-[#064E3B] hover:bg-[#043D2E] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5"
-                >
-                  <span>Book Free Trial Now</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      trackEvent('how_it_works_trial_click', { category: learnerTab });
+                      if (onNavigate) onNavigate('contact');
+                    }}
+                    className="flex-1 py-3 px-4 bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#032A20] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5"
+                  >
+                    <span>Book Free Trial</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      trackEvent('how_it_works_enroll_click', { category: learnerTab });
+                      if (onNavigate) onNavigate('contact');
+                    }}
+                    className="flex-1 py-3 px-4 bg-white hover:bg-[#FAF9F5] active:bg-[#F1F5F9] text-[#064E3B] border border-[#CBD5E1] rounded-xl text-xs font-semibold shadow-2xs transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5"
+                  >
+                    <span>Enroll Now</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -324,9 +385,22 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
                     </ul>
                   </div>
 
-                  <div className="pt-5 mt-5 border-t border-[#F1F5F9] text-xs font-semibold text-[#064E3B] flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                    <span>Explore Step</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                  <div className="pt-4 mt-5 border-t border-[#F1F5F9]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        trackEvent('how_it_works_step_action', { step: s.step, label: s.actionLabel });
+                        if (onNavigate) onNavigate(s.actionTarget);
+                      }}
+                      className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        s.actionHighlight
+                          ? 'bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#032A20] text-white shadow-xs'
+                          : 'bg-[#FAF9F5] hover:bg-[#ECFDF5] text-[#064E3B] border border-[#E5E2D9] hover:border-[#A7F3D0]'
+                      }`}
+                    >
+                      <span>{s.actionLabel}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               </ScrollReveal>
@@ -491,6 +565,17 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
               >
                 <span>Book Free Trial Class</span>
                 <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  trackEvent('how_it_works_cta_click', { action: 'enroll_now' });
+                  if (onNavigate) onNavigate('contact');
+                }}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 min-h-[48px] text-sm font-semibold text-white bg-white/15 hover:bg-white/25 active:bg-white/30 border border-white/35 rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                <span>Enroll Now</span>
               </button>
 
               <a
