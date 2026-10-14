@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { useAuth } from './lib/AuthContext';
 import { COURSES, getCourseBySlug } from './data/courses';
 import { trackPageView } from './utils/analytics';
+import { WelcomeScreen } from './components/WelcomeScreen';
 
 // Code-split subpages and admin bundle so initial load is ultra-fast
 const AboutPage = React.lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
@@ -147,6 +148,12 @@ function parseRouteFromLocation(): RouteState {
 export default function App() {
   const { adminUser, currentUser, isAdmin, adminSignOut, userSignOut } = useAuth();
   const [route, setRoute] = useState<RouteState>(parseRouteFromLocation);
+  const [showWelcome, setShowWelcome] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const isDirectAdmin = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/health');
+    if (isDirectAdmin) return false;
+    return true;
+  });
 
   // Sync route on popstate (browser back/forward button)
   useEffect(() => {
@@ -342,6 +349,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F5] text-[#1E2320]">
+      {showWelcome && (
+        <WelcomeScreen onFinish={() => setShowWelcome(false)} />
+      )}
       <Header
         currentPage={route.page}
         currentUser={currentUser}
