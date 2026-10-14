@@ -3,22 +3,24 @@ import { PageId, AdminTab, User, Course, AdminUser } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
-import { AboutPage } from './pages/AboutPage';
-import { CoursesPage } from './pages/CoursesPage';
-import { CourseDetailPage } from './pages/CourseDetailPage';
-import { TeachersPage } from './pages/TeachersPage';
-import { HowItWorksPage } from './pages/HowItWorksPage';
-import { ResourcesPage } from './pages/ResourcesPage';
-import { FaqPage } from './pages/FaqPage';
-import { ContactPage } from './pages/ContactPage';
-import { HealthPage } from './pages/HealthPage';
-import { LoginPage } from './pages/LoginPage';
-import { NotFoundPage } from './pages/NotFoundPage';
-import { AdminLoginPage } from './admin/AdminLoginPage';
-import { AdminDashboardPage } from './admin/AdminDashboardPage';
 import { useAuth } from './lib/AuthContext';
 import { COURSES, getCourseBySlug } from './data/courses';
 import { trackPageView } from './utils/analytics';
+
+// Code-split subpages and admin bundle so initial load is ultra-fast
+const AboutPage = React.lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
+const CoursesPage = React.lazy(() => import('./pages/CoursesPage').then(m => ({ default: m.CoursesPage })));
+const CourseDetailPage = React.lazy(() => import('./pages/CourseDetailPage').then(m => ({ default: m.CourseDetailPage })));
+const TeachersPage = React.lazy(() => import('./pages/TeachersPage').then(m => ({ default: m.TeachersPage })));
+const HowItWorksPage = React.lazy(() => import('./pages/HowItWorksPage').then(m => ({ default: m.HowItWorksPage })));
+const ResourcesPage = React.lazy(() => import('./pages/ResourcesPage').then(m => ({ default: m.ResourcesPage })));
+const FaqPage = React.lazy(() => import('./pages/FaqPage').then(m => ({ default: m.FaqPage })));
+const ContactPage = React.lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
+const HealthPage = React.lazy(() => import('./pages/HealthPage').then(m => ({ default: m.HealthPage })));
+const LoginPage = React.lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+const AdminLoginPage = React.lazy(() => import('./admin/AdminLoginPage').then(m => ({ default: m.AdminLoginPage })));
+const AdminDashboardPage = React.lazy(() => import('./admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
 
 interface RouteState {
   page: PageId;
@@ -27,26 +29,48 @@ interface RouteState {
   adminTab?: AdminTab;
 }
 
+const COURSE_SEO_TITLES: Record<string, string> = {
+  'quran-reading': 'Online Quran Reading & Nazra Classes | Tuhfat Al-Ilm Academy',
+  'tajweed': 'Online Quran Tajweed Classes | Tuhfat Al-Ilm Academy',
+  'hifz-ul-quran': 'Online Quran Memorization (Hifz) Classes | Tuhfat Al-Ilm Academy',
+  'quran-translation': 'Online Quran Translation & Tafseer Course | Tuhfat Al-Ilm Academy',
+  'islamic-studies': 'Comprehensive Online Islamic Studies Course | Tuhfat Al-Ilm Academy',
+  'basic-islamic-knowledge': 'Learn Namaz & Basic Islamic Knowledge Online | Tuhfat Al-Ilm Academy',
+  'islah-character-development': 'Islamic Character & Moral Ethics Course | Tuhfat Al-Ilm Academy',
+  'dua-and-sunnah': 'Daily Masnoon Duas & Sunnah Course Online | Tuhfat Al-Ilm Academy',
+  'childrens-islamic-education': 'Online Quran & Islamic Classes for Kids | Tuhfat Al-Ilm Academy'
+};
+
+const LEGACY_COURSE_SLUGS: Record<string, string> = {
+  nazra: 'quran-reading',
+  hifz: 'hifz-ul-quran',
+  translation: 'quran-translation',
+  'basic-knowledge': 'basic-islamic-knowledge',
+  islah: 'islah-character-development',
+  'dua-sunnah': 'dua-and-sunnah',
+  children: 'childrens-islamic-education'
+};
+
 const BASE_PAGE_TITLES: Record<PageId, string> = {
-  home: 'Tuhfat Al-Ilm Academy | Online Quran & Islamic Education',
-  about: 'Tuhfat Al-Ilm Academy | About Us',
-  courses: 'Tuhfat Al-Ilm Academy | Courses',
-  'course-detail': 'Tuhfat Al-Ilm Academy | Course Details',
-  teachers: 'Tuhfat Al-Ilm Academy | Our Qualified Teachers',
-  'how-it-works': 'Tuhfat Al-Ilm Academy | How It Works',
-  resources: 'Tuhfat Al-Ilm Academy | Learning Resources',
-  faq: 'Tuhfat Al-Ilm Academy | FAQ',
-  contact: 'Tuhfat Al-Ilm Academy | Contact & Enrollment',
+  home: 'Tuhfat Al-Ilm Academy | Online Quran & Islamic Classes',
+  about: 'About Us | Tuhfat Al-Ilm Academy',
+  courses: 'Online Quran Courses & Islamic Curriculum | Tuhfat Al-Ilm Academy',
+  'course-detail': 'Course Details | Tuhfat Al-Ilm Academy',
+  teachers: 'Certified Online Quran Teachers & Scholars | Tuhfat Al-Ilm Academy',
+  'how-it-works': 'How Online Quran Classes Work | Tuhfat Al-Ilm Academy',
+  resources: 'Free Islamic & Quran Learning Resources | Tuhfat Al-Ilm Academy',
+  faq: 'Online Quran Classes FAQ | Tuhfat Al-Ilm Academy',
+  contact: 'Book Free Trial Class & Contact Admissions | Tuhfat Al-Ilm Academy',
   health: 'Tuhfat Al-Ilm Academy | System Health Status',
-  'not-found': 'Tuhfat Al-Ilm Academy | Page Not Found',
-  login: 'Tuhfat Al-Ilm Academy | Student Sign In',
-  register: 'Tuhfat Al-Ilm Academy | Create Account',
-  'admin-login': 'Tuhfat Al-Ilm Academy | Admin Portal',
-  'admin-dashboard': 'Tuhfat Al-Ilm Academy | Admin Dashboard'
+  'not-found': 'Page Not Found | Tuhfat Al-Ilm Academy',
+  login: 'Student Sign In | Tuhfat Al-Ilm Academy',
+  register: 'Create Student Account | Tuhfat Al-Ilm Academy',
+  'admin-login': 'Admin Portal | Tuhfat Al-Ilm Academy',
+  'admin-dashboard': 'Admin Dashboard | Tuhfat Al-Ilm Academy'
 };
 
 const PAGE_DESCRIPTIONS: Partial<Record<PageId, string>> = {
-  home: 'Tuhfat Al-Ilm Academy provides accessible online Quran and Islamic education for children and adults around the world, including Nazra, Hifz, Tajweed, and Islamic studies.',
+  home: 'Tuhfat Al-Ilm Academy provides accessible online Quran and Islamic education worldwide for children and adults, including Nazra, Hifz, Tajweed, and Islamic studies.',
   about: 'Learn about Tuhfat Al-Ilm Academy, our qualified faculty, certified scholars, and structured online Quran teaching methodology.',
   courses: 'Explore our 9 online Quran and Islamic programs: Quran Reading / Nazra, Hifz-ul-Quran, Tajweed, Quran Translation, Islamic Studies, Basic Islamic Knowledge, Islah, Dua and Sunnah, and Children’s Islamic Education.',
   teachers: 'Meet our certified Huffaz, Qaris, and Islamic Scholars dedicated to structured 1-on-1 online teaching for children and adult learners.',
@@ -73,7 +97,8 @@ function parseRouteFromLocation(): RouteState {
       if (rawHash === 'about') return { page: 'about' };
       if (rawHash === 'courses') return { page: 'courses' };
       if (rawHash.startsWith('courses/')) {
-        const slug = rawHash.replace('courses/', '');
+        let slug = rawHash.replace('courses/', '');
+        if (LEGACY_COURSE_SLUGS[slug]) slug = LEGACY_COURSE_SLUGS[slug];
         return { page: 'course-detail', courseSlug: slug };
       }
       if (rawHash === 'teachers') return { page: 'teachers' };
@@ -97,7 +122,8 @@ function parseRouteFromLocation(): RouteState {
   if (rawPath === '/about') return { page: 'about' };
   if (rawPath === '/courses') return { page: 'courses' };
   if (rawPath.startsWith('/courses/')) {
-    const slug = rawPath.replace('/courses/', '');
+    let slug = rawPath.replace('/courses/', '');
+    if (LEGACY_COURSE_SLUGS[slug]) slug = LEGACY_COURSE_SLUGS[slug];
     return { page: 'course-detail', courseSlug: slug };
   }
   if (rawPath === '/teachers') return { page: 'teachers' };
@@ -140,12 +166,12 @@ export default function App() {
     if (route.page === 'course-detail' && route.courseSlug) {
       const course = getCourseBySlug(route.courseSlug);
       if (course) {
-        title = `Tuhfat Al-Ilm Academy | ${course.name}`;
+        title = COURSE_SEO_TITLES[course.slug] || `${course.name} | Tuhfat Al-Ilm Academy`;
         description = course.shortDesc;
         canonicalPath = `/courses/${course.slug}`;
       }
     } else if (route.page === 'admin-dashboard') {
-      title = 'Tuhfat Al-Ilm Academy | Admin Dashboard';
+      title = 'Admin Dashboard | Tuhfat Al-Ilm Academy';
       canonicalPath = route.adminTab ? `/admin/${route.adminTab}` : '/admin';
     }
 
@@ -158,6 +184,19 @@ export default function App() {
     const canonicalLink = document.querySelector('link[rel="canonical"]');
     if (canonicalLink) canonicalLink.setAttribute('href', fullCanonicalUrl);
 
+    // Robots directive: noindex for admin/health routes; index & follow for all public learning pages
+    let robotsMeta = document.querySelector('meta[name="robots"]');
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.setAttribute('name', 'robots');
+      document.head.appendChild(robotsMeta);
+    }
+    if (route.page.startsWith('admin-') || route.page === 'admin-dashboard' || route.page === 'health') {
+      robotsMeta.setAttribute('content', 'noindex, nofollow');
+    } else {
+      robotsMeta.setAttribute('content', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+    }
+
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.setAttribute('content', title || '');
 
@@ -166,6 +205,12 @@ export default function App() {
 
     const ogUrl = document.querySelector('meta[property="og:url"]');
     if (ogUrl) ogUrl.setAttribute('content', fullCanonicalUrl);
+
+    const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twitterTitle) twitterTitle.setAttribute('content', title || '');
+
+    const twitterDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twitterDesc) twitterDesc.setAttribute('content', description || '');
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -213,23 +258,31 @@ export default function App() {
     }
   }, [navigateTo]);
 
+  const renderSuspenseFallback = () => (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-3 border-[#064E3B] border-t-transparent animate-spin" />
+    </div>
+  );
+
   // Render Admin Dashboard view
   if (route.page === 'admin-dashboard') {
     if (isAdmin && adminUser) {
       return (
-        <AdminDashboardPage
-          admin={adminUser}
-          initialTab={route.adminTab || 'overview'}
-          onLogout={adminSignOut}
-          onNavigatePublic={navigateTo}
-          onTabChange={(tab) => {
-            const nextPath = tab === 'overview' ? '/admin' : `/admin/${tab}`;
-            try {
-              window.history.pushState(null, '', nextPath);
-            } catch {}
-            setRoute({ page: 'admin-dashboard', adminTab: tab });
-          }}
-        />
+        <React.Suspense fallback={renderSuspenseFallback()}>
+          <AdminDashboardPage
+            admin={adminUser}
+            initialTab={route.adminTab || 'overview'}
+            onLogout={adminSignOut}
+            onNavigatePublic={navigateTo}
+            onTabChange={(tab) => {
+              const nextPath = tab === 'overview' ? '/admin' : `/admin/${tab}`;
+              try {
+                window.history.pushState(null, '', nextPath);
+              } catch {}
+              setRoute({ page: 'admin-dashboard', adminTab: tab });
+            }}
+          />
+        </React.Suspense>
       );
     }
 
@@ -238,10 +291,12 @@ export default function App() {
       <div className="min-h-screen flex flex-col bg-[#FAF9F5]">
         <Header currentPage="admin-login" currentUser={currentUser} onNavigate={navigateTo} onLogout={userSignOut} />
         <main className="flex-grow">
-          <AdminLoginPage
-            onLoginSuccess={handleAdminLoginSuccess}
-            onNavigate={navigateTo}
-          />
+          <React.Suspense fallback={renderSuspenseFallback()}>
+            <AdminLoginPage
+              onLoginSuccess={handleAdminLoginSuccess}
+              onNavigate={navigateTo}
+            />
+          </React.Suspense>
         </main>
         <Footer onNavigate={navigateTo} />
       </div>
@@ -294,7 +349,9 @@ export default function App() {
         onLogout={userSignOut}
       />
       <main id="main-content" className="flex-grow">
-        {renderContent()}
+        <React.Suspense fallback={renderSuspenseFallback()}>
+          {renderContent()}
+        </React.Suspense>
       </main>
       <Footer onNavigate={navigateTo} />
     </div>

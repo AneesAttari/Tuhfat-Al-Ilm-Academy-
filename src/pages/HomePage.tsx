@@ -26,8 +26,9 @@ import {
   Mail,
   Phone
 } from 'lucide-react';
-import heroImg from '../assets/images/closed_quran_rehal_1791716784314.jpg';
-import mosqueImg from '../assets/images/peaceful_mosque_courtyard_1791716797053.jpg';
+import heroImg from '../assets/images/closed_quran_rehal.webp';
+import mosqueImg from '../assets/images/peaceful_mosque_courtyard.webp';
+import { safeGetJson } from '../lib/apiSafe';
 
 interface HomePageProps {
   onNavigate: (page: PageId, courseSlugOrName?: string) => void;
@@ -42,20 +43,15 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
   // Load published courses, teachers, and announcements dynamically from database
   useEffect(() => {
-    fetch('/api/courses')
-      .then((res) => res.json())
+    safeGetJson('/api/courses')
       .then((data) => {
-        if (data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
+        if (data && data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
           setCourses(data.courses);
         }
       })
       .catch(() => {});
 
-    fetch('/api/teachers')
-      .then((res) => {
-        if (!res.ok) return null;
-        return res.json();
-      })
+    safeGetJson('/api/teachers')
       .then((data) => {
         if (data && data.teachers && Array.isArray(data.teachers) && data.teachers.length > 0) {
           setTeachers(data.teachers);
@@ -63,10 +59,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       })
       .catch(() => {});
 
-    fetch('/api/announcements')
-      .then((res) => res.json())
+    safeGetJson('/api/announcements')
       .then((data) => {
-        if (data.announcements && Array.isArray(data.announcements)) {
+        if (data && data.announcements && Array.isArray(data.announcements)) {
           setAnnouncements(data.announcements);
         }
       })

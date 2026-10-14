@@ -1,1 +1,29 @@
+# Canonical 301 Redirects for Legacy Course Slugs
+/courses/nazra /courses/quran-reading 301
+/courses/hifz /courses/hifz-ul-quran 301
+/courses/translation /courses/quran-translation 301
+/courses/basic-knowledge /courses/basic-islamic-knowledge 301
+/courses/islah /courses/islah-character-development 301
+/courses/dua-sunnah /courses/dua-and-sunnah 301
+/courses/children /courses/childrens-islamic-education 301
+
+# Trailing Slash Normalization
+/courses/quran-reading/ /courses/quran-reading 301
+/courses/hifz-ul-quran/ /courses/hifz-ul-quran 301
+/courses/tajweed/ /courses/tajweed 301
+/courses/quran-translation/ /courses/quran-translation 301
+/courses/islamic-studies/ /courses/islamic-studies 301
+/courses/basic-islamic-knowledge/ /courses/basic-islamic-knowledge 301
+/courses/islah-character-development/ /courses/islah-character-development 301
+/courses/dua-and-sunnah/ /courses/dua-and-sunnah 301
+/courses/childrens-islamic-education/ /courses/childrens-islamic-education 301
+/about/ /about 301
+/courses/ /courses 301
+/teachers/ /teachers 301
+/how-it-works/ /how-it-works 301
+/resources/ /resources 301
+/faq/ /faq 301
+/contact/ /contact 301
+
+# Single Page App Routing Fallback
 /*    /index.html   200

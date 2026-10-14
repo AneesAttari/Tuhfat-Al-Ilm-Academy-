@@ -13,6 +13,8 @@ import { AdminSettingsView } from './settings/AdminSettingsView';
 import { getStoredTeachers, saveStoredTeachers } from '../data/teachers';
 import { COURSES } from '../data/courses';
 import { safeGetJson } from '../lib/apiSafe';
+import { db } from '../lib/firebase';
+import { collection, getDocs, limit, query } from 'firebase/firestore';
 import {
   LayoutDashboard,
   BarChart3,
@@ -107,19 +109,46 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       if (stored) localList = JSON.parse(stored);
     } catch {}
 
+    const applyMerged = (apiInquiries: Inquiry[] = [], firestoreInquiries: Inquiry[] = []) => {
+      const map = new Map<string, Inquiry>();
+      [...apiInquiries, ...firestoreInquiries, ...localList].forEach((inq) => {
+        if (inq && inq.id) {
+          map.set(inq.id, { ...inq, status: inq.status || 'New' });
+        }
+      });
+
+      const merged = Array.from(map.values()).sort((a, b) => {
+        const timeA = new Date(a.created_at || 0).getTime();
+        const timeB = new Date(b.created_at || 0).getTime();
+        return timeB - timeA;
+      });
+
+      if (merged.length > 0) {
+        setInquiries(merged);
+      }
+    };
+
+    // 1. Try safeGetJson
     safeGetJson('/api/inquiries')
       .then((data) => {
-        if (data && data.inquiries && Array.isArray(data.inquiries)) {
-          const ids = new Set(data.inquiries.map((i: any) => i.id));
-          const merged = [...data.inquiries, ...localList.filter((l) => !ids.has(l.id))];
-          setInquiries(merged);
-        } else if (localList.length > 0) {
-          setInquiries(localList);
-        }
+        const apiList = data && data.inquiries && Array.isArray(data.inquiries) ? data.inquiries : [];
+        applyMerged(apiList);
       })
       .catch(() => {
-        if (localList.length > 0) setInquiries(localList);
+        applyMerged();
       });
+
+    // 2. Also try Firestore in background
+    try {
+      const q = query(collection(db, 'inquiries'), limit(100));
+      getDocs(q).then((snap) => {
+        const fsList: Inquiry[] = [];
+        snap.forEach((d) => fsList.push({ id: d.id, ...d.data() } as Inquiry));
+        if (fsList.length > 0) {
+          applyMerged([], fsList);
+        }
+      }).catch(() => {});
+    } catch {}
   };
 
   const fetchCourses = () => {

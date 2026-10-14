@@ -4,6 +4,7 @@ import { COURSES as DEFAULT_COURSES } from '../data/courses';
 import { CourseCard } from '../components/CourseCard';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { trackEvent } from '../utils/analytics';
+import { safeGetJson } from '../lib/apiSafe';
 import {
   Search,
   BookOpen,
@@ -25,16 +26,15 @@ interface CoursesPageProps {
 export const CoursesPage: React.FC<CoursesPageProps> = ({ onNavigate }) => {
   const [courses, setCourses] = useState<Course[]>(DEFAULT_COURSES);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [loading, setLoading] = useState(false);
 
   // Fetch dynamically published courses from the database if available
   useEffect(() => {
     setLoading(true);
-    fetch('/api/courses')
-      .then((res) => res.json())
+    safeGetJson('/api/courses')
       .then((data) => {
-        if (data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
+        if (data && data.courses && Array.isArray(data.courses) && data.courses.length > 0) {
           setCourses(data.courses);
         }
       })

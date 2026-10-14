@@ -91,7 +91,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({ onNavigate }) => {
               <div className="space-y-4">
                 <div className="w-14 h-14 rounded-2xl bg-[#064E3B] text-white flex items-center justify-center font-bold text-xl shadow-sm overflow-hidden shrink-0">
                   {t.photoUrl ? (
-                    <img src={t.photoUrl} alt={t.name} className="w-full h-full object-cover" />
+                    <img src={t.photoUrl} alt={t.name} width={56} height={56} className="w-full h-full object-cover" />
                   ) : (
                     <span>{t.name.split(' ')[1]?.[0] || t.name[0] || 'Q'}</span>
                   )}

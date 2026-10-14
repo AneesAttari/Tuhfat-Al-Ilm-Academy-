@@ -37,3 +37,4 @@ bun.lockb
 *.sln
 *.sw?
 coverage/
+.aistudio/

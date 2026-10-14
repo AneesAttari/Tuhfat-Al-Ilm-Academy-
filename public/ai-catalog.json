@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/ai-catalog.json",
+  "name": "Tuhfat-Al-Ilm Academy",
+  "description": "International Online Islamic Academy providing structured Quran, Tajweed, Hifz, and Islamic studies education worldwide.",
+  "url": "https://tuhfatalilm.online",
+  "version": "1.0.0",
+  "contact": {
+    "name": "Tuhfat-Al-Ilm Academic Admissions",
+    "email": "tuhfatalilmacademy@gmail.com",
+    "url": "https://tuhfatalilm.online/contact"
+  },
+  "documentation": "https://tuhfatalilm.online/llms.txt",
+  "services": [
+    {
+      "id": "trial-booking",
+      "name": "Book Free 1-on-1 Trial Class",
+      "description": "Complimentary introductory class with qualified instructor via Zoom or Google Meet.",
+      "url": "https://tuhfatalilm.online/contact"
+    },
+    {
+      "id": "quran-reading-nazra",
+      "name": "Quran Reading / Nazra",
+      "description": "Foundational and fluent Quran recitation with Tajweed principles.",
+      "url": "https://tuhfatalilm.online/courses/nazra"
+    },
+    {
+      "id": "hifz-ul-quran",
+      "name": "Hifz-ul-Quran Memorization",
+      "description": "Comprehensive memorization curriculum with systematic revision.",
+      "url": "https://tuhfatalilm.online/courses/hifz"
+    },
+    {
+      "id": "islamic-studies",
+      "name": "Islamic Studies for Youth & Adults",
+      "description": "Foundational beliefs, Seerah, Fiqh, and daily Sunnah supplications.",
+      "url": "https://tuhfatalilm.online/courses/islamic-studies"
+    }
+  ]
+}

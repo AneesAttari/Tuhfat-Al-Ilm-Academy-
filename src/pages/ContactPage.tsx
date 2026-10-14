@@ -3,6 +3,7 @@ import { PageId } from '../types';
 import { COURSES } from '../data/courses';
 import { trackEvent } from '../utils/analytics';
 import { ScrollReveal } from '../components/ScrollReveal';
+import { submitInquiryOrTrial } from '../lib/inquiries';
 import {
   MessageCircle,
   Phone,
@@ -23,7 +24,9 @@ import {
   Award,
   Video,
   Lock,
-  Compass
+  Compass,
+  Copy,
+  Check
 } from 'lucide-react';
 
 interface ContactPageProps {
@@ -63,6 +66,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
   } | null>(null);
 
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [copiedId, setCopiedId] = useState(false);
 
   // Sync initialCourse prop if it changes
   useEffect(() => {
@@ -79,60 +83,72 @@ export const ContactPage: React.FC<ContactPageProps> = ({
     } catch {}
   }, []);
 
+  const handleCopyId = (id: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(id);
+        setCopiedId(true);
+        setTimeout(() => setCopiedId(false), 2500);
+      }
+    } catch {}
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
 
-    if (!name.trim() || !phone.trim()) {
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim();
+
+    if (!cleanName || !cleanPhone) {
       setSubmitError('Please provide both the student name and WhatsApp/Phone number.');
+      const card = document.getElementById('booking-form-card');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
     setSubmitting(true);
 
-    const payload = {
-      name: name.trim(),
-      parent_name: parentName.trim(),
-      phone: phone.trim(),
-      email: email.trim(),
-      course: course.trim(),
-      preferred_date: preferredDate.trim(),
-      preferred_time: `${preferredTime} (${preferredDays}, Age: ${ageGroup}, Teacher: ${teacherPreference}, Level: ${currentLevel})`,
-      timezone: timezone.trim(),
-      country: country.trim(),
-      message: message.trim(),
-      source: formMode === 'trial' ? 'Contact Page - Free Trial Booking' : 'Contact Page - Academic Inquiry'
-    };
+    const fullScheduleTime = `${preferredTime} (${preferredDays}, Age: ${ageGroup}, Teacher: ${teacherPreference}, Level: ${currentLevel})`;
 
     try {
-      const endpoint = formMode === 'trial' ? '/api/trial-bookings' : '/api/inquiries';
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const result = await submitInquiryOrTrial({
+        name: cleanName,
+        parent_name: parentName.trim(),
+        phone: cleanPhone,
+        email: email.trim(),
+        course: course.trim(),
+        preferred_date: preferredDate.trim(),
+        preferred_time: fullScheduleTime,
+        timezone: timezone.trim(),
+        country: country.trim(),
+        message: message.trim(),
+        formMode
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit inquiry. Please try again or message us on WhatsApp.');
-      }
-
       trackEvent('inquiry_submitted', {
-        course: payload.course,
+        course: course.trim(),
         mode: formMode
       });
 
       setSubmittedBooking({
-        id: data.bookingId || data.booking?.id || 'TAB-' + Math.floor(100000 + Math.random() * 900000),
-        name: payload.name,
-        course: payload.course,
-        phone: payload.phone,
+        id: result.bookingId,
+        name: cleanName,
+        course: course.trim(),
+        phone: cleanPhone,
         teacherPref: teacherPreference === 'female' ? 'Female Instructor' : teacherPreference === 'male' ? 'Male Instructor' : 'No Preference',
         preferredTime: `${preferredTime} · ${preferredDays}`
       });
+
+      // Smoothly scroll confirmation into user's view
+      setTimeout(() => {
+        const card = document.getElementById('booking-form-card');
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 50);
     } catch (err: any) {
-      setSubmitError(err.message || 'Network error occurred. You can also message us directly on WhatsApp.');
+      setSubmitError(err.message || 'Unable to submit right now. Please try again or reach us directly on WhatsApp.');
     } finally {
       setSubmitting(false);
     }
@@ -345,7 +361,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({
           {/* Main Form (8 Columns) */}
           <div className="lg:col-span-8">
             <ScrollReveal direction="fade-up">
-              <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-sm overflow-hidden">
+              <div id="booking-form-card" className="bg-white rounded-3xl border border-[#E2E8F0] shadow-sm overflow-hidden scroll-mt-24">
                 {/* Header Switcher */}
                 <div className="p-5 sm:p-7 bg-[#FAF9F5] border-b border-[#E5E2D9] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
@@ -408,7 +424,27 @@ export const ContactPage: React.FC<ContactPageProps> = ({
                       <div className="inline-block p-5 bg-[#FAF9F5] rounded-2xl border border-[#E5E2D9] text-xs space-y-2 text-left max-w-sm w-full">
                         <div className="flex justify-between items-center pb-2 border-b border-[#E5E2D9]">
                           <span className="text-[#64748B]">Reference ID:</span>
-                          <span className="font-mono text-base font-bold text-[#064E3B]">{submittedBooking.id}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-base font-bold text-[#064E3B]">{submittedBooking.id}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyId(submittedBooking.id)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-[#CBD5E1] hover:bg-[#F1F5F9] text-[11px] font-medium text-[#475569] transition-colors cursor-pointer"
+                              title="Copy Reference ID"
+                            >
+                              {copiedId ? (
+                                <>
+                                  <Check className="w-3 h-3 text-[#059669]" />
+                                  <span className="text-[#059669] font-semibold">Copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>Copy</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                         <div className="flex justify-between items-center text-[11px] text-[#475569]">
                           <span>Teacher Preference:</span>
@@ -726,26 +762,40 @@ export const ContactPage: React.FC<ContactPageProps> = ({
 
                       {/* Submit CTA and Guarantee Bar */}
                       <div className="pt-2 border-t border-[#F1F5F9] flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <button
-                          type="submit"
-                          disabled={submitting}
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 min-h-[50px] text-sm font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#022C22] disabled:opacity-60 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:ring-offset-2"
-                        >
-                          {submitting ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>Submitting Inquiry...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Send className="w-4 h-4" />
-                              <span>
-                                {formMode === 'trial' ? 'Request Free Trial Class' : 'Submit Academic Inquiry'}
-                              </span>
-                              <ArrowRight className="w-4 h-4" />
-                            </>
-                          )}
-                        </button>
+                        <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                          <button
+                            type="submit"
+                            disabled={submitting}
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 min-h-[50px] text-sm font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#022C22] disabled:opacity-60 rounded-xl shadow-xs hover:shadow-md transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:ring-offset-2"
+                          >
+                            {submitting ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Submitting Request...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Send className="w-4 h-4" />
+                                <span>
+                                  {formMode === 'trial' ? 'Request Free Trial Class' : 'Submit Academic Inquiry'}
+                                </span>
+                                <ArrowRight className="w-4 h-4" />
+                              </>
+                            )}
+                          </button>
+
+                          <a
+                            href={`https://wa.me/923171503094?text=${encodeURIComponent(
+                              `Assalamu Alaikum, I would like to book a free trial class for "${course || 'Quran Reading / Nazra'}". Name: ${name || 'Prospective Student'}, WhatsApp: ${phone || 'Not provided'}.`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 min-h-[50px] text-xs font-semibold text-[#059669] hover:text-[#047857] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] rounded-xl transition-colors cursor-pointer"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            <span>Or Book via WhatsApp</span>
+                          </a>
+                        </div>
 
                         <div className="flex items-center gap-2 text-xs text-[#64748B]">
                           <Lock className="w-3.5 h-3.5 text-[#059669]" />

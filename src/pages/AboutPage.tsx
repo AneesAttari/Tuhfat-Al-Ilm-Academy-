@@ -2,7 +2,7 @@ import React from 'react';
 import { PageId } from '../types';
 import { ArrowRight, Compass, Heart, Users, BookOpen, CheckCircle2 } from 'lucide-react';
 import { ScrollReveal } from '../components/ScrollReveal';
-import mosqueImg from '../assets/images/peaceful_mosque_courtyard_1791716797053.jpg';
+import mosqueImg from '../assets/images/peaceful_mosque_courtyard.webp';
 
 interface AboutPageProps {
   onNavigate: (page: PageId) => void;
@@ -47,6 +47,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
                 <img
                   src={mosqueImg}
                   alt="A peaceful mosque courtyard in soft natural daylight."
+                  width={800}
+                  height={500}
                   className="w-full h-auto aspect-[16/10] object-cover"
                   loading="lazy"
                   referrerPolicy="no-referrer"

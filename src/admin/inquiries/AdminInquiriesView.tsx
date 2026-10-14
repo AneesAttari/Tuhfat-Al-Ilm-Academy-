@@ -18,7 +18,8 @@ import {
   ArrowUpDown,
   Calendar
 } from 'lucide-react';
-
+import { db } from '../../lib/firebase';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 interface AdminInquiriesViewProps {
   inquiries: Inquiry[];
   courses: { id: string; name: string }[];
@@ -82,6 +83,10 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
         localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(updated));
       }
     } catch {}
+
+    try {
+      updateDoc(doc(db, 'inquiries', id), updates).catch(() => {});
+    } catch {}
   };
 
   const deleteLocalInquiry = (id: string) => {
@@ -92,6 +97,10 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
         const updated = list.filter((i) => i.id !== id);
         localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(updated));
       }
+    } catch {}
+
+    try {
+      deleteDoc(doc(db, 'inquiries', id)).catch(() => {});
     } catch {}
   };
 

@@ -13,8 +13,8 @@ import {
   RefreshCw,
   FolderOpen
 } from 'lucide-react';
-import heroImg from '../../assets/images/closed_quran_rehal_1791716784314.jpg';
-import mosqueImg from '../../assets/images/peaceful_mosque_courtyard_1791716797053.jpg';
+import heroImg from '../../assets/images/closed_quran_rehal.webp';
+import mosqueImg from '../../assets/images/peaceful_mosque_courtyard.webp';
 
 interface MediaItem {
   id: string;
@@ -51,16 +51,16 @@ export const AdminMediaView: React.FC = () => {
     },
     {
       id: 'asset-hero',
-      filename: 'closed_quran_rehal_1791716784314.jpg',
+      filename: 'closed_quran_rehal.webp',
       url: heroImg,
       title: 'Closed Holy Quran on Wooden Rehal',
-      size: '220 KB',
+      size: '48 KB',
       category: 'Curriculum & Themes',
       canDelete: false
     },
     {
       id: 'asset-study',
-      filename: 'peaceful_mosque_courtyard_1791716797053.jpg',
+      filename: 'peaceful_mosque_courtyard.webp',
       url: mosqueImg,
       title: 'Peaceful Mosque Courtyard Architecture',
       size: '185 KB',

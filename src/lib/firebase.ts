@@ -13,13 +13,14 @@ import {
   User as FirebaseUser,
   RecaptchaVerifier,
   signInWithPhoneNumber,
-  ConfirmationResult,
+  type ConfirmationResult,
   updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
   linkWithCredential,
   reauthenticateWithPopup
 } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 export const firebaseConfig = {
   apiKey: "AIzaSyDEJwYqiAB8PdeyikGZfR_gJ3ut5lXNRcM",
@@ -36,6 +37,9 @@ export const firebaseApp = !getApps().length ? initializeApp(firebaseConfig) : g
 
 // Firebase Auth Instance
 export const auth = getAuth(firebaseApp);
+
+// Firestore Instance
+export const db = getFirestore(firebaseApp);
 
 // Google Auth Provider setup
 export const googleProvider = new GoogleAuthProvider();

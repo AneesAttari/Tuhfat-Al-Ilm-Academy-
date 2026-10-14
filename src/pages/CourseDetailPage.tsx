@@ -56,7 +56,22 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ course, onNa
 
   // SEO & Structured Data for this individual course
   useEffect(() => {
-    const pageTitle = `Tuhfat Al-Ilm Academy | ${course.name}`;
+    const officialBase = 'https://tuhfatalilm.online';
+    const courseUrl = `${officialBase}/courses/${course.slug}`;
+
+    const COURSE_TITLES: Record<string, string> = {
+      'quran-reading': 'Online Quran Reading & Nazra Classes | Tuhfat Al-Ilm Academy',
+      'tajweed': 'Online Quran Tajweed Classes | Tuhfat Al-Ilm Academy',
+      'hifz-ul-quran': 'Online Quran Memorization (Hifz) Classes | Tuhfat Al-Ilm Academy',
+      'quran-translation': 'Online Quran Translation & Tafseer Course | Tuhfat Al-Ilm Academy',
+      'islamic-studies': 'Comprehensive Online Islamic Studies Course | Tuhfat Al-Ilm Academy',
+      'basic-islamic-knowledge': 'Learn Namaz & Basic Islamic Knowledge Online | Tuhfat Al-Ilm Academy',
+      'islah-character-development': 'Islamic Character & Moral Ethics Course | Tuhfat Al-Ilm Academy',
+      'dua-and-sunnah': 'Daily Masnoon Duas & Sunnah Course Online | Tuhfat Al-Ilm Academy',
+      'childrens-islamic-education': 'Online Quran & Islamic Classes for Kids | Tuhfat Al-Ilm Academy'
+    };
+
+    const pageTitle = COURSE_TITLES[course.slug] || `${course.name} | Tuhfat Al-Ilm Academy`;
     document.title = pageTitle;
 
     // Update Meta Description
@@ -75,8 +90,7 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ course, onNa
       canonical.setAttribute('rel', 'canonical');
       document.head.appendChild(canonical);
     }
-    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://YOUR-DOMAIN.com';
-    canonical.setAttribute('href', `${currentOrigin}/courses/${course.slug}`);
+    canonical.setAttribute('href', courseUrl);
 
     // Update OpenGraph
     let ogTitle = document.querySelector('meta[property="og:title"]');
@@ -84,9 +98,15 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ course, onNa
     let ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.setAttribute('content', course.shortDesc);
     let ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.setAttribute('content', `${currentOrigin}/courses/${course.slug}`);
+    if (ogUrl) ogUrl.setAttribute('content', courseUrl);
 
-    // Inject Schema.org Course structured data
+    // Update Twitter Cards
+    let twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twitterTitle) twitterTitle.setAttribute('content', pageTitle);
+    let twitterDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twitterDesc) twitterDesc.setAttribute('content', course.shortDesc);
+
+    // Inject Schema.org Course, BreadcrumbList, and FAQPage structured data
     let scriptTag = document.getElementById('course-schema');
     if (!scriptTag) {
       scriptTag = document.createElement('script');
@@ -94,26 +114,73 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ course, onNa
       scriptTag.setAttribute('type', 'application/ld+json');
       document.head.appendChild(scriptTag);
     }
+
+    const schemaGraph: any[] = [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Course',
+        name: course.name,
+        description: course.detailedDesc,
+        url: courseUrl,
+        provider: {
+          '@type': 'EducationalOrganization',
+          name: 'Tuhfat Al-Ilm Academy',
+          url: officialBase
+        },
+        educationalCredentialAwarded: 'Course Completion Assessment',
+        hasCourseInstance: {
+          '@type': 'CourseInstance',
+          courseMode: 'online',
+          courseSchedule: 'Flexible / 1-on-1 scheduled sessions'
+        }
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: `${officialBase}/`
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Courses',
+            item: `${officialBase}/courses`
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: course.name,
+            item: courseUrl
+          }
+        ]
+      }
+    ];
+
+    if (course.faq && course.faq.length > 0) {
+      schemaGraph.push({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: course.faq.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer
+          }
+        }))
+      });
+    }
+
     scriptTag.textContent = JSON.stringify({
       '@context': 'https://schema.org',
-      '@type': 'Course',
-      name: course.name,
-      description: course.detailedDesc,
-      provider: {
-        '@type': 'EducationalOrganization',
-        name: 'Tuhfat Al-Ilm Academy',
-        url: currentOrigin
-      },
-      educationalCredentialAwarded: 'Course Completion Assessment',
-      hasCourseInstance: {
-        '@type': 'CourseInstance',
-        courseMode: 'online',
-        courseSchedule: 'Flexible / 1-on-1 scheduled sessions'
-      }
+      '@graph': schemaGraph
     });
 
     return () => {
-      // Clean up script tag on unmount
       const existingScript = document.getElementById('course-schema');
       if (existingScript) existingScript.remove();
     };
