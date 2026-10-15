@@ -31,6 +31,13 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// Handle SKIP_WAITING message from client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // Activate: purge older caches and claim active clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(

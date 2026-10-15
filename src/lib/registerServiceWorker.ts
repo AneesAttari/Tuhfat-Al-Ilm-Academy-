@@ -1,12 +1,18 @@
 export function registerServiceWorker() {
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+
     const register = () => {
       navigator.serviceWorker
         .register('/sw.js', { scope: '/' })
         .then((reg) => {
-          console.log('[PWA] Service Worker registered with scope:', reg.scope);
-
-          // Force check for updates
+          // Immediately check for updates
           reg.update().catch(() => {});
 
           reg.onupdatefound = () => {
@@ -15,21 +21,17 @@ export function registerServiceWorker() {
               installingWorker.onstatechange = () => {
                 if (installingWorker.state === 'installed') {
                   if (navigator.serviceWorker.controller) {
-                    console.log('[PWA] New content available; please refresh.');
-                  } else {
-                    console.log('[PWA] Content is cached for offline use.');
+                    // Tell worker to skip waiting and take over
+                    installingWorker.postMessage({ type: 'SKIP_WAITING' });
                   }
                 }
               };
             }
           };
         })
-        .catch((err) => {
-          console.warn('[PWA] Service worker registration error:', err);
-        });
+        .catch(() => {});
     };
 
-    // If page is already loaded or interactive, register immediately
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       register();
     } else {
