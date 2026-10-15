@@ -262,7 +262,9 @@ export default function App() {
       nextPath = `/${page}`;
     }
 
+    setShowWelcome(false);
     try {
+      sessionStorage.setItem('tuhfat_welcome_seen', '1');
       window.history.pushState(null, '', nextPath);
     } catch {}
 

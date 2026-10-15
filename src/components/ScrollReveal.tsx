@@ -47,10 +47,25 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
       return;
     }
 
+    // Safety check: if element is already within viewport bounds, reveal immediately
+    try {
+      const rect = node.getBoundingClientRect();
+      if (rect.top <= (window.innerHeight || document.documentElement.clientHeight) + 100) {
+        setIsVisible(true);
+        if (once) return;
+      }
+    } catch {}
+
+    // Failsafe timer: guarantee content is never permanently hidden under any browser condition
+    const safetyTimer = setTimeout(() => {
+      setIsVisible(true);
+    }, 400);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
+          clearTimeout(safetyTimer);
           if (once) {
             observer.unobserve(entry.target);
           }
@@ -67,6 +82,7 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
     observer.observe(node);
 
     return () => {
+      clearTimeout(safetyTimer);
       observer.disconnect();
     };
   }, [threshold, rootMargin, once]);
