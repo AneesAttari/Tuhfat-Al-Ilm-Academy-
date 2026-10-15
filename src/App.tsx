@@ -8,18 +8,20 @@ import { COURSES, getCourseBySlug } from './data/courses';
 import { trackPageView } from './utils/analytics';
 import { WelcomeScreen } from './components/WelcomeScreen';
 
-// Code-split subpages and admin bundle so initial load is ultra-fast
-const AboutPage = React.lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
-const CoursesPage = React.lazy(() => import('./pages/CoursesPage').then(m => ({ default: m.CoursesPage })));
-const CourseDetailPage = React.lazy(() => import('./pages/CourseDetailPage').then(m => ({ default: m.CourseDetailPage })));
-const TeachersPage = React.lazy(() => import('./pages/TeachersPage').then(m => ({ default: m.TeachersPage })));
-const HowItWorksPage = React.lazy(() => import('./pages/HowItWorksPage').then(m => ({ default: m.HowItWorksPage })));
-const ResourcesPage = React.lazy(() => import('./pages/ResourcesPage').then(m => ({ default: m.ResourcesPage })));
-const FaqPage = React.lazy(() => import('./pages/FaqPage').then(m => ({ default: m.FaqPage })));
-const ContactPage = React.lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
-const HealthPage = React.lazy(() => import('./pages/HealthPage').then(m => ({ default: m.HealthPage })));
-const LoginPage = React.lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
-const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+import { AboutPage } from './pages/AboutPage';
+import { CoursesPage } from './pages/CoursesPage';
+import { CourseDetailPage } from './pages/CourseDetailPage';
+import { TeachersPage } from './pages/TeachersPage';
+import { HowItWorksPage } from './pages/HowItWorksPage';
+import { ResourcesPage } from './pages/ResourcesPage';
+import { FaqPage } from './pages/FaqPage';
+import { ContactPage } from './pages/ContactPage';
+import { HealthPage } from './pages/HealthPage';
+import { LoginPage } from './pages/LoginPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
+
+// Keep heavy admin bundle code-split so normal visitors don't load charts and tables
 const AdminLoginPage = React.lazy(() => import('./admin/AdminLoginPage').then(m => ({ default: m.AdminLoginPage })));
 const AdminDashboardPage = React.lazy(() => import('./admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
 
@@ -49,7 +51,8 @@ const LEGACY_COURSE_SLUGS: Record<string, string> = {
   'basic-knowledge': 'basic-islamic-knowledge',
   islah: 'islah-character-development',
   'dua-sunnah': 'dua-and-sunnah',
-  children: 'childrens-islamic-education'
+  children: 'childrens-islamic-education',
+  'tajweed-quran': 'tajweed'
 };
 
 const BASE_PAGE_TITLES: Record<PageId, string> = {
@@ -150,10 +153,11 @@ export default function App() {
   const [route, setRoute] = useState<RouteState>(parseRouteFromLocation);
   const [showWelcome, setShowWelcome] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
+    // Welcome splash is ONLY shown on root homepage ('/' or '') - never on subpages
+    const rawPath = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
+    if (rawPath !== '/') return false;
     const ua = window.navigator.userAgent || '';
     if (/lighthouse|chrome-lighthouse|googlebot|pagespeed/i.test(ua)) return false;
-    const isDirectAdmin = window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/health');
-    if (isDirectAdmin) return false;
     try {
       if (sessionStorage.getItem('tuhfat_welcome_seen')) return false;
     } catch {}
@@ -338,7 +342,7 @@ export default function App() {
       case 'teachers':
         return <TeachersPage onNavigate={navigateTo} />;
       case 'how-it-works':
-        return <HowItWorksPage />;
+        return <HowItWorksPage onNavigate={navigateTo} />;
       case 'resources':
         return <ResourcesPage onNavigate={navigateTo} />;
       case 'faq':
@@ -352,7 +356,11 @@ export default function App() {
       case 'register':
         return <LoginPage initialMode="register" onAuthSuccess={handleUserAuthSuccess} onNavigate={navigateTo} />;
       case 'admin-login':
-        return <AdminLoginPage onLoginSuccess={handleAdminLoginSuccess} onNavigate={navigateTo} />;
+        return (
+          <React.Suspense fallback={renderSuspenseFallback()}>
+            <AdminLoginPage onLoginSuccess={handleAdminLoginSuccess} onNavigate={navigateTo} />
+          </React.Suspense>
+        );
       case 'not-found':
       default:
         return <NotFoundPage onNavigate={navigateTo} />;
@@ -360,22 +368,22 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF9F5] text-[#1E2320]">
-      {showWelcome && (
-        <WelcomeScreen onFinish={handleWelcomeFinish} />
-      )}
-      <Header
-        currentPage={route.page}
-        currentUser={currentUser}
-        onNavigate={navigateTo}
-        onLogout={userSignOut}
-      />
-      <main id="main-content" className="flex-grow">
-        <React.Suspense fallback={renderSuspenseFallback()}>
+    <ErrorBoundary>
+      <div className="min-h-screen flex flex-col bg-[#FAF9F5] text-[#1E2320]">
+        {showWelcome && (
+          <WelcomeScreen onFinish={handleWelcomeFinish} />
+        )}
+        <Header
+          currentPage={route.page}
+          currentUser={currentUser}
+          onNavigate={navigateTo}
+          onLogout={userSignOut}
+        />
+        <main id="main-content" className="flex-grow">
           {renderContent()}
-        </React.Suspense>
-      </main>
-      <Footer onNavigate={navigateTo} />
-    </div>
+        </main>
+        <Footer onNavigate={navigateTo} />
+      </div>
+    </ErrorBoundary>
   );
 }

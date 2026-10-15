@@ -167,7 +167,18 @@
   </head>
   <body class="bg-[#FAF9F5] text-[#1E2320] font-sans antialiased selection:bg-[#064E3B] selection:text-white">
     <div id="root">
-      <!-- Instant Mobile Welcoming Screen (displays while bundle loads) -->
+      <!-- Pre-render Welcome Splash: Only shown when visiting root homepage ('/' or '') -->
+      <script>
+        (function() {
+          try {
+            var path = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
+            if (path !== '/') {
+              document.write('<style>#initial-welcome-screen{display:none !important;visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}</style>');
+            }
+          } catch(e) {}
+        })();
+      </script>
+      <!-- Instant Mobile Welcoming Screen (displays while bundle loads on homepage) -->
       <div id="initial-welcome-screen" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:2.5rem 1.5rem;background:linear-gradient(180deg,#FFFFFF 0%,#FAF8F5 45%,#F4EFEB 100%);user-select:none;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;">
         <div style="text-align:center;padding-top:0.75rem;">
           <p style="font-size:0.875rem;font-weight:700;letter-spacing:0.12em;color:#743682;text-transform:uppercase;margin:0 0 0.35rem 0;">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>

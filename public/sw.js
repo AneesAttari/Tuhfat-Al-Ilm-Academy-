@@ -1,7 +1,7 @@
 // Service Worker for Tuhfat Al-Ilm Academy PWA
 // Provides offline capability, asset caching, and satisfies Chromium & Safari PWA installability criteria
 
-const CACHE_NAME = 'tuhfat-ilm-pwa-v3';
+const CACHE_NAME = 'tuhfat-ilm-pwa-v4';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -76,7 +76,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => {
           return caches.match(req).then((cached) => {
-            return cached || caches.match('/');
+            return cached || caches.match('/index.html') || caches.match('/');
           });
         })
     );
@@ -106,7 +106,7 @@ self.addEventListener('fetch', (event) => {
         if (req.headers.get('accept')?.includes('image')) {
           return caches.match('/favicon-192x192.png');
         }
-        throw err;
+        return caches.match(req) || Promise.reject(err);
       });
     })
   );

@@ -369,7 +369,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <div className="pt-6 mt-6 border-t border-[#F1F5F9]">
                 <button
                   type="button"
-                  onClick={() => onNavigate('course-detail', 'tajweed-quran')}
+                  onClick={() => onNavigate('course-detail', 'tajweed')}
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl text-xs sm:text-sm font-semibold text-[#1E40AF] bg-[#EFF6FF] hover:bg-[#DBEAFE] border border-[#BFDBFE] transition-colors cursor-pointer"
                 >
                   <span>Explore Tajweed &amp; Adult Courses</span>
