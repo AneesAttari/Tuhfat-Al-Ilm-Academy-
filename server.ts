@@ -702,7 +702,43 @@ You can manage this student and assign an instructor via the Admin Portal at /ad
   let status = 'logged';
   let errorMsg: string | null = null;
 
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const isValidEmail = Boolean(booking.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(booking.email));
+      const resendPayload: any = {
+        from: process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>',
+        to: [process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com'],
+        subject: `New Free Trial Booking — Tuhfat Al-Ilm Academy: ${booking.name} (${booking.course})`,
+        text: bodyText
+      };
+      if (isValidEmail && booking.email) {
+        resendPayload.reply_to = booking.email;
+      }
+
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(resendPayload)
+      });
+
+      if (resendRes.ok) {
+        status = 'sent';
+        console.log(`[Email] Resend notification sent successfully to ${resendPayload.to.join(', ')}`);
+      } else {
+        const errText = await resendRes.text();
+        status = 'failed';
+        errorMsg = `Resend error (${resendRes.status}): ${errText}`;
+        console.warn(`[Email] Resend API error:`, errorMsg);
+      }
+    } catch (err: any) {
+      status = 'failed';
+      errorMsg = err.message || String(err);
+      console.warn(`[Email] Resend network dispatch failed:`, errorMsg);
+    }
+  } else if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,

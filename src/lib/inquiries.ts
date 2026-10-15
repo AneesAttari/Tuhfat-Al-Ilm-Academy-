@@ -141,10 +141,10 @@ export async function submitInquiryOrTrial(
     }
   };
 
-  // Run both sync operations concurrently with a 1500ms boundary
+  // Run both sync operations concurrently with a 3000ms boundary
   await Promise.allSettled([
-    syncTimeout(firestoreSync(), 1500),
-    syncTimeout(serverApiSync(), 1500)
+    syncTimeout(firestoreSync(), 3000),
+    syncTimeout(serverApiSync(), 3000)
   ]);
 
   return {
