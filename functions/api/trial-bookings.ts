@@ -246,6 +246,20 @@ export async function onRequestOptions() {
   return corsResponse(null, 204);
 }
 
+export async function onRequestGet(context: any) {
+  const kv = context.env?.INQUIRIES_KV || context.env?.KV;
+  if (kv) {
+    try {
+      const raw = await kv.get('latest_inquiries');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return corsResponse({ success: true, inquiries: parsed, count: parsed.length });
+      }
+    } catch {}
+  }
+  return corsResponse({ success: true, inquiries: [] });
+}
+
 export async function onRequestPost(context: {
   request: Request;
   env: Env;

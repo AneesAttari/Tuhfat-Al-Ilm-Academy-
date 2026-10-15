@@ -1,5 +1,6 @@
 {
   "name": "tuhfat-al-ilm-academy",
+  "main": "worker.ts",
   "compatibility_date": "2026-10-09",
   "assets": {
     "directory": "./dist",

@@ -134,15 +134,17 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       }
     };
 
-    // 1. Try safeGetJson with admin authentication headers
-    safeGetJson('/api/inquiries', { 'x-admin-email': admin.email })
-      .then((data) => {
-        const apiList = data && data.inquiries && Array.isArray(data.inquiries) ? data.inquiries : [];
-        applyMerged(apiList);
-      })
-      .catch(() => {
-        applyMerged();
-      });
+    // 1. Try safeGetJson with admin authentication headers from both inquiries and trial-bookings
+    Promise.allSettled([
+      safeGetJson('/api/inquiries', { 'x-admin-email': admin.email }),
+      safeGetJson('/api/trial-bookings', { 'x-admin-email': admin.email })
+    ]).then(([resInq, resTrials]) => {
+      const inqList = (resInq.status === 'fulfilled' && resInq.value?.inquiries && Array.isArray(resInq.value.inquiries)) ? resInq.value.inquiries : [];
+      const trialList = (resTrials.status === 'fulfilled' && resTrials.value?.inquiries && Array.isArray(resTrials.value.inquiries)) ? resTrials.value.inquiries : [];
+      applyMerged([...inqList, ...trialList]);
+    }).catch(() => {
+      applyMerged();
+    });
 
     // 2. Concurrently check Firestore in background
     try {
