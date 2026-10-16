@@ -1,17 +1,17 @@
 // Service Worker for Tuhfat Al-Ilm Academy PWA
 // Provides offline capability, asset caching, and satisfies Chromium & Safari PWA installability criteria
 
-const CACHE_NAME = 'tuhfat-ilm-pwa-v4';
+const CACHE_NAME = 'tuhfat-ilm-pwa-v6';
 
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
-  '/site.webmanifest',
-  '/manifest.json',
-  '/favicon.ico',
-  '/favicon-192x192.png',
-  '/favicon-512x512.png',
-  '/apple-touch-icon.png'
+  '/site.webmanifest?v=3',
+  '/manifest.json?v=3',
+  '/favicon.ico?v=3',
+  '/favicon-192x192.png?v=3',
+  '/favicon-512x512.png?v=3',
+  '/apple-touch-icon.png?v=3'
 ];
 
 // Install: precache critical shell assets resiliently and activate immediately
@@ -38,19 +38,26 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Activate: purge older caches and claim active clients
+// Activate: purge older caches and immediately claim all active clients
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('[PWA Service Worker] Purging stale cache:', key);
             return caches.delete(key);
           }
         })
       );
     }).then(() => {
       return self.clients.claim();
+    }).then(() => {
+      return self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_ACTIVATED', version: CACHE_NAME });
+        });
+      });
     })
   );
 });
@@ -78,8 +85,13 @@ self.addEventListener('fetch', (event) => {
           if (response && response.status === 200) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+            return response;
           }
-          return response;
+          // If server returns 404 (e.g. directly opened SPA subpage before .htaccess or on static hosts),
+          // fallback to index.html so the client router loads smoothly instead of blank/404!
+          return caches.match('/index.html').then((cached) => {
+            return cached || response;
+          });
         })
         .catch(() => {
           return caches.match(req).then((cached) => {

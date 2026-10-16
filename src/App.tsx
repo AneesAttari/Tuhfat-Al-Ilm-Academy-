@@ -348,7 +348,7 @@ export default function App() {
       case 'resources':
         return <ResourcesPage onNavigate={navigateTo} />;
       case 'faq':
-        return <FaqPage />;
+        return <FaqPage onNavigate={navigateTo} />;
       case 'contact':
         return <ContactPage initialCourse={route.courseNameForContact} onNavigate={navigateTo} />;
       case 'health':

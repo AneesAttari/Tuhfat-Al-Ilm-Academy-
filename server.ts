@@ -705,9 +705,14 @@ You can manage this student and assign an instructor via the Admin Portal at /ad
   if (process.env.RESEND_API_KEY) {
     try {
       const isValidEmail = Boolean(booking.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(booking.email));
+      const recipientList = [...new Set([
+        process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com',
+        'aneesattari67@gmail.com',
+        ...recipients
+      ])];
       const resendPayload: any = {
         from: process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>',
-        to: [process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com'],
+        to: recipientList,
         subject: `New Free Trial Booking — Tuhfat Al-Ilm Academy: ${booking.name} (${booking.course})`,
         text: bodyText
       };
@@ -770,15 +775,17 @@ Subject: ${subject}
 ${bodyText}`);
 
     try {
-      const fsRes = await fetch('https://formsubmit.co/ajax/aneesattari67@gmail.com', {
+      const fsRes = await fetch('https://formsubmit.co/ajax/tuhfatalilmacademy@gmail.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Referer': 'https://tuhfatalilm.online',
+          'Origin': 'https://tuhfatalilm.online'
         },
         body: JSON.stringify({
           _subject: subject,
-          _cc: 'tuhfatalilmacademy@gmail.com',
+          _cc: 'aneesattari67@gmail.com',
           _template: 'table',
           _captcha: 'false',
           'Student Name': booking.name,
@@ -2028,6 +2035,17 @@ async function startServer() {
     res.json({ inquiries: rows });
   });
 
+  app.get('/api/trial-bookings', async (req: Request, res: Response) => {
+    const admin = await getAdminFromSession(req);
+    if (!admin) {
+      res.status(401).json({ error: 'Unauthorized.' });
+      return;
+    }
+
+    const rows = await dbQueryAll('SELECT * FROM inquiries ORDER BY created_at DESC');
+    res.json({ inquiries: rows });
+  });
+
   app.post('/api/trial-bookings', async (req: Request, res: Response) => {
     const name = req.body.name?.trim();
     const phone = req.body.phone?.trim();
@@ -2122,6 +2140,106 @@ async function startServer() {
 
     const rows = await dbQueryAll('SELECT * FROM email_notifications ORDER BY created_at DESC LIMIT 50');
     res.json({ notifications: rows });
+  });
+
+  app.post('/api/test-email', async (req: Request, res: Response) => {
+    const admin = await getAdminFromSession(req);
+    if (!admin) {
+      res.status(401).json({ error: 'Unauthorized.' });
+      return;
+    }
+
+    const targetEmail = (req.body.email || 'tuhfatalilmacademy@gmail.com').trim().toLowerCase();
+    const now = new Date().toISOString();
+
+    const results: any = {
+      timestamp: now,
+      targetEmail,
+      resend: null,
+      smtp: null,
+      formsubmit: null
+    };
+
+    // 1. Resend
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>',
+            to: [targetEmail],
+            subject: `[Live Test] Tuhfat Al-Ilm Academy Email Verification`,
+            text: `Assalamu Alaikum. This test email confirms that your Tuhfat Al-Ilm Academy email system is operating and delivering to ${targetEmail}. Sent at: ${now}`
+          })
+        });
+        const resText = await resendRes.text();
+        let parsed = null;
+        try { parsed = JSON.parse(resText); } catch {}
+        results.resend = { status: resendRes.status, ok: resendRes.ok, response: parsed || resText };
+      } catch (err: any) {
+        results.resend = { error: err.message };
+      }
+    } else {
+      results.resend = { status: 'not_configured', message: 'RESEND_API_KEY is not set in environment.' };
+    }
+
+    // 2. SMTP
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT || 587),
+          secure: process.env.SMTP_SECURE === 'true',
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+        });
+        await transporter.sendMail({
+          from: `"${process.env.SMTP_FROM || 'Tuhfat Al-Ilm Academy'}" <${process.env.SMTP_USER}>`,
+          to: targetEmail,
+          subject: `[SMTP Test] Tuhfat Al-Ilm Academy Email Verification`,
+          text: `Assalamu Alaikum. SMTP email verification successful for ${targetEmail}. Sent at: ${now}`
+        });
+        results.smtp = { ok: true, status: 'sent' };
+      } catch (err: any) {
+        results.smtp = { ok: false, error: err.message };
+      }
+    } else {
+      results.smtp = { status: 'not_configured', message: 'Hostinger SMTP credentials not set in environment.' };
+    }
+
+    // 3. FormSubmit fallback
+    try {
+      const fsRes = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetEmail)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Referer': 'https://tuhfatalilm.online',
+          'Origin': 'https://tuhfatalilm.online'
+        },
+        body: JSON.stringify({
+          _subject: `[Verification Test] Tuhfat Al-Ilm Academy Email Delivery`,
+          _cc: 'aneesattari67@gmail.com',
+          Message: `Assalamu Alaikum. This test email confirms admissions notifications from Tuhfat Al-Ilm Academy are successfully arriving at ${targetEmail}.`,
+          Timestamp: now
+        })
+      });
+      const fsText = await fsRes.text();
+      let fsJson = null;
+      try { fsJson = JSON.parse(fsText); } catch {}
+      results.formsubmit = { status: fsRes.status, response: fsJson || fsText };
+    } catch (fsErr: any) {
+      results.formsubmit = { error: fsErr.message };
+    }
+
+    res.json({
+      success: true,
+      message: 'Test email execution completed. See detailed channel results below.',
+      diagnostics: results
+    });
   });
 
   app.put('/api/inquiries/:id', async (req: Request, res: Response) => {
@@ -2860,8 +2978,18 @@ async function startServer() {
   // Production static file serving vs Vite dev server
   const distPath = path.resolve(process.cwd(), 'dist');
   if (process.env.NODE_ENV === 'production' && fs.existsSync(distPath)) {
-    console.log('[Tuhfat Server] Operating in Production Mode. Serving static files from ' + distPath);
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('sw.js')) {
+          res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate, no-cache');
+          res.setHeader('Service-Worker-Allowed', '/');
+        } else if (filePath.endsWith('.webmanifest') || filePath.endsWith('manifest.json')) {
+          res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+        } else if (filePath.endsWith('favicon.ico') || filePath.includes('favicon')) {
+          res.setHeader('Cache-Control', 'public, max-age=86400, must-revalidate');
+        }
+      }
+    }));
     app.get('*', (req: Request, res: Response) => {
       if (req.path.startsWith('/api')) {
         res.status(404).json({ error: 'API route not found' });

@@ -9,7 +9,11 @@ import {
   Globe,
   Save,
   Eye,
-  EyeOff
+  EyeOff,
+  Mail,
+  Send,
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
 import {
   auth,
@@ -44,6 +48,78 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
   const [weeklyDigest, setWeeklyDigest] = useState(false);
   const [savingPrefs, setSavingPrefs] = useState(false);
   const [prefsMsg, setPrefsMsg] = useState<string | null>(null);
+
+  // Live Email Verification & Diagnostic State
+  const [testEmailTarget, setTestEmailTarget] = useState('tuhfatalilmacademy@gmail.com');
+  const [testingEmail, setTestingEmail] = useState(false);
+  const [testEmailFeedback, setTestEmailFeedback] = useState<{
+    success: boolean;
+    message: string;
+    details?: any;
+  } | null>(null);
+
+  const handleSendTestEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanTarget = testEmailTarget.trim();
+    if (!cleanTarget) return;
+
+    setTestingEmail(true);
+    setTestEmailFeedback(null);
+
+    try {
+      // 1. Try server endpoint
+      const result = await safePostJson('/api/test-email', {
+        email: cleanTarget
+      }, {
+        'x-admin-email': adminEmail
+      });
+
+      if (result && result.diagnostics) {
+        setTestEmailFeedback({
+          success: result.success,
+          message: result.message || 'Test email dispatched. Review channel status below.',
+          details: result.diagnostics
+        });
+        setTestingEmail(false);
+        return;
+      }
+
+      // 2. Direct browser fallback if static hosting
+      const fsRes = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(cleanTarget)}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Referer': 'https://tuhfatalilm.online',
+          'Origin': 'https://tuhfatalilm.online'
+        },
+        body: JSON.stringify({
+          _subject: `[Browser Test] Tuhfat Al-Ilm Academy Email Verification`,
+          _cc: 'aneesattari67@gmail.com',
+          Message: `Assalamu Alaikum. This test email confirms admissions notifications from Tuhfat Al-Ilm Academy arrive directly at ${cleanTarget}.`,
+          Timestamp: new Date().toISOString()
+        })
+      });
+
+      const fsJson = await fsRes.json().catch(() => ({}));
+      const isPendingActivation = fsJson?.message?.includes('Activation') || fsJson?.message?.includes('Activate');
+
+      setTestEmailFeedback({
+        success: fsJson?.success === 'true' || fsJson?.success === true || isPendingActivation,
+        message: isPendingActivation
+          ? 'FormSubmit has sent an activation link to your Gmail! Please open your Gmail (or Spam folder) and click "Activate Form" once to activate delivery.'
+          : (fsJson?.message || 'Test notification dispatched successfully!'),
+        details: { formsubmit: fsJson }
+      });
+    } catch (err: any) {
+      setTestEmailFeedback({
+        success: false,
+        message: err?.message || 'Failed to dispatch test email. Please check your internet connection.'
+      });
+    } finally {
+      setTestingEmail(false);
+    }
+  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -367,6 +443,144 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
 
           <div className="pt-4 border-t border-[#F1F5F9] text-[11px] text-[#94A3B8]">
             Tuhfat Al-Ilm Academy v2.4 · Production System
+          </div>
+        </div>
+
+        {/* CARD 3: LIVE EMAIL VERIFICATION & DIAGNOSTICS */}
+        <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-4 md:col-span-2">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2 text-sm font-bold text-[#0F172A]">
+                <Mail className="w-4 h-4 text-[#059669]" />
+                <span>Live Email Delivery Verification &amp; Diagnostics</span>
+              </div>
+              <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                Multi-Channel Gateway
+              </span>
+            </div>
+            <p className="text-xs text-[#64748B] mb-4">
+              Test and verify real-time email notifications to ensure trial bookings and admissions inquiries immediately reach your official academy Gmail inbox.
+            </p>
+
+            <form onSubmit={handleSendTestEmail} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#374151] mb-1.5">
+                  Target Recipient Email Address
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="email"
+                    required
+                    value={testEmailTarget}
+                    onChange={(e) => setTestEmailTarget(e.target.value)}
+                    placeholder="e.g. tuhfatalilmacademy@gmail.com"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#064E3B] focus:border-[#064E3B] bg-white transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    disabled={testingEmail}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] shadow-xs cursor-pointer disabled:opacity-50 transition-all whitespace-nowrap"
+                  >
+                    {testingEmail ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        <span>Sending Verification Email...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Send Test Email Now</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Quick Selection Chips */}
+                <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                  <span className="text-[11px] text-[#64748B]">Quick select:</span>
+                  <button
+                    type="button"
+                    onClick={() => setTestEmailTarget('tuhfatalilmacademy@gmail.com')}
+                    className={`text-[11px] px-2.5 py-1 rounded-lg border cursor-pointer transition-colors ${
+                      testEmailTarget === 'tuhfatalilmacademy@gmail.com'
+                        ? 'bg-emerald-50 text-[#064E3B] border-emerald-300 font-semibold'
+                        : 'bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]'
+                    }`}
+                  >
+                    tuhfatalilmacademy@gmail.com (Academy Official)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTestEmailTarget('aneesattari67@gmail.com')}
+                    className={`text-[11px] px-2.5 py-1 rounded-lg border cursor-pointer transition-colors ${
+                      testEmailTarget === 'aneesattari67@gmail.com'
+                        ? 'bg-emerald-50 text-[#064E3B] border-emerald-300 font-semibold'
+                        : 'bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC]'
+                    }`}
+                  >
+                    aneesattari67@gmail.com (Admin Account)
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            {/* Test Results & Feedback */}
+            {testEmailFeedback && (
+              <div
+                className={`mt-4 p-4 rounded-2xl border text-xs space-y-2.5 ${
+                  testEmailFeedback.success
+                    ? 'bg-[#F0FDF4] border-[#BBF7D0] text-[#166534]'
+                    : 'bg-amber-50 border-amber-200 text-amber-900'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  {testEmailFeedback.success ? (
+                    <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  )}
+                  <div>
+                    <div className="font-semibold">{testEmailFeedback.message}</div>
+                  </div>
+                </div>
+
+                {testEmailFeedback.details && (
+                  <div className="bg-white/80 p-3 rounded-xl border border-black/5 font-mono text-[11px] space-y-1.5 text-gray-800">
+                    <div className="font-semibold text-gray-900 font-sans">Gateway Diagnostic Logs:</div>
+                    {testEmailFeedback.details.resend && (
+                      <div>
+                        <strong>Resend API:</strong>{' '}
+                        {testEmailFeedback.details.resend.ok
+                          ? '✓ Dispatched successfully via Resend'
+                          : `Status: ${testEmailFeedback.details.resend.status || 'Not configured'} - ${JSON.stringify(testEmailFeedback.details.resend.response || testEmailFeedback.details.resend.message || testEmailFeedback.details.resend.error)}`}
+                      </div>
+                    )}
+                    {testEmailFeedback.details.formsubmit && (
+                      <div>
+                        <strong>Direct Gateway:</strong>{' '}
+                        {JSON.stringify(testEmailFeedback.details.formsubmit.response || testEmailFeedback.details.formsubmit)}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Practical Checklist for Gmail */}
+            <div className="mt-5 p-4 rounded-2xl bg-[#FAF9F5] border border-[#E5E2D9] text-xs text-[#475569] space-y-2">
+              <div className="font-semibold text-[#1E2320]">Important Checklist if you don&apos;t see the email immediately in Inbox:</div>
+              <ul className="list-disc pl-4 space-y-1.5 text-[11px] leading-relaxed">
+                <li>
+                  <strong>Check Gmail &quot;Spam&quot; or &quot;Promotions&quot; folder:</strong> First-time notifications from automated senders or <code className="bg-white px-1 py-0.5 rounded border border-gray-200">onboarding@resend.dev</code> are often placed in Gmail&apos;s Spam folder. Click <em>&quot;Report not spam&quot;</em> to whitelist it for the future.
+                </li>
+                <li>
+                  <strong>FormSubmit Activation:</strong> If you received an email with subject <em>&quot;Action Required: Activate your FormSubmit form&quot;</em> in your Gmail inbox or spam, click <em>&quot;Activate Form&quot;</em> once. This permanently authorizes instant email delivery.
+                </li>
+                <li>
+                  <strong>Resend Free Tier Sender Rule:</strong> With Resend&apos;s default domain (<code className="bg-white px-1 py-0.5 rounded border border-gray-200">onboarding@resend.dev</code>), Resend only allows delivering to the single email address used to register the Resend account. To deliver to any custom address or your domain, add and verify your domain at <em>resend.com/domains</em>.
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

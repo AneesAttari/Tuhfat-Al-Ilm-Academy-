@@ -371,7 +371,22 @@ export async function onRequestPost(context: {
       emailProviderStatus = 'pending_configuration';
     }
 
-    // 4. Return success response with booking record and email metadata
+    // 4. Persist booking to Cloudflare KV for cross-device admin portal retrieval
+    const kv = context.env?.INQUIRIES_KV || context.env?.KV;
+    if (kv) {
+      try {
+        let existingList: any[] = [];
+        const raw = await kv.get('latest_inquiries');
+        if (raw) existingList = JSON.parse(raw);
+        const updated = [bookingRecord, ...existingList.filter((item: any) => item.id !== bookingRecord.id)].slice(0, 100);
+        await kv.put('latest_inquiries', JSON.stringify(updated));
+        await kv.put(`inquiry:${bookingRecord.id}`, JSON.stringify(bookingRecord));
+      } catch (kvErr) {
+        console.warn('[Cloudflare Pages KV Error]:', kvErr);
+      }
+    }
+
+    // 5. Return success response with booking record and email metadata
     // NOTE: Booking is ALWAYS preserved and returned as successful to the student!
     return corsResponse({
       success: true,

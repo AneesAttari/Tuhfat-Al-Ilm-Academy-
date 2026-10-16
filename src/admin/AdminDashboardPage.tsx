@@ -14,7 +14,7 @@ import { getStoredTeachers, saveStoredTeachers } from '../data/teachers';
 import { COURSES } from '../data/courses';
 import { safeGetJson } from '../lib/apiSafe';
 import { db } from '../lib/firebase';
-import { collection, getDocs, limit, query } from 'firebase/firestore';
+import { collection, getDocs, limit, query, onSnapshot } from 'firebase/firestore';
 import {
   LayoutDashboard,
   BarChart3,
@@ -102,58 +102,58 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       .catch(() => {});
   };
 
-  const fetchInquiries = () => {
+  const applyMergedInquiries = (apiInquiries: Inquiry[] = [], firestoreInquiries: Inquiry[] = []) => {
     let localList: Inquiry[] = [];
     try {
       const stored = localStorage.getItem('tuhfat_local_inquiries') || localStorage.getItem('tuhfat_inquiries_backup');
       if (stored) localList = JSON.parse(stored);
     } catch {}
 
-    const applyMerged = (apiInquiries: Inquiry[] = [], firestoreInquiries: Inquiry[] = []) => {
-      const map = new Map<string, Inquiry>();
-      // Order of precedence: localList (preserves immediate status edits), then apiInquiries, then firestore
-      [...firestoreInquiries, ...apiInquiries, ...localList].forEach((inq) => {
-        if (inq && inq.id) {
-          map.set(inq.id, { ...inq, status: inq.status || 'New' });
-        }
-      });
-
-      const merged = Array.from(map.values()).sort((a, b) => {
-        const timeA = new Date(a.created_at || 0).getTime();
-        const timeB = new Date(b.created_at || 0).getTime();
-        return timeB - timeA;
-      });
-
-      if (merged.length > 0) {
-        setInquiries(merged);
-        try {
-          const serialized = JSON.stringify(merged);
-          localStorage.setItem('tuhfat_local_inquiries', serialized);
-          localStorage.setItem('tuhfat_inquiries_backup', serialized);
-        } catch {}
+    const map = new Map<string, Inquiry>();
+    // Precedence: firestore first, then apiInquiries, then localList (preserves immediate status edits)
+    [...firestoreInquiries, ...apiInquiries, ...localList].forEach((inq) => {
+      if (inq && inq.id) {
+        map.set(inq.id, { ...inq, status: inq.status || 'New' });
       }
-    };
+    });
 
-    // 1. Try safeGetJson with admin authentication headers from both inquiries and trial-bookings
+    const merged = Array.from(map.values()).sort((a, b) => {
+      const timeA = new Date(a.created_at || 0).getTime();
+      const timeB = new Date(b.created_at || 0).getTime();
+      return timeB - timeA;
+    });
+
+    if (merged.length > 0) {
+      setInquiries(merged);
+      try {
+        const serialized = JSON.stringify(merged);
+        localStorage.setItem('tuhfat_local_inquiries', serialized);
+        localStorage.setItem('tuhfat_inquiries_backup', serialized);
+      } catch {}
+    }
+  };
+
+  const fetchInquiries = () => {
+    // 1. Fetch from server API with admin authentication headers from both inquiries and trial-bookings
     Promise.allSettled([
       safeGetJson('/api/inquiries', { 'x-admin-email': admin.email }),
       safeGetJson('/api/trial-bookings', { 'x-admin-email': admin.email })
     ]).then(([resInq, resTrials]) => {
       const inqList = (resInq.status === 'fulfilled' && resInq.value?.inquiries && Array.isArray(resInq.value.inquiries)) ? resInq.value.inquiries : [];
       const trialList = (resTrials.status === 'fulfilled' && resTrials.value?.inquiries && Array.isArray(resTrials.value.inquiries)) ? resTrials.value.inquiries : [];
-      applyMerged([...inqList, ...trialList]);
+      applyMergedInquiries([...inqList, ...trialList]);
     }).catch(() => {
-      applyMerged();
+      applyMergedInquiries();
     });
 
-    // 2. Concurrently check Firestore in background
+    // 2. Concurrently check Firestore
     try {
       const q = query(collection(db, 'inquiries'), limit(100));
       getDocs(q).then((snap) => {
         const fsList: Inquiry[] = [];
         snap.forEach((d) => fsList.push({ id: d.id, ...d.data() } as Inquiry));
         if (fsList.length > 0) {
-          applyMerged([], fsList);
+          applyMergedInquiries([], fsList);
         }
       }).catch(() => {});
     } catch {}
@@ -296,6 +296,41 @@ export const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     fetchTeachers();
     fetchAnnouncements();
     fetchSiteSettings();
+
+    // 1. Auto-refresh polling every 12 seconds so ANY trial booking from ANY other device shows up automatically
+    const pollTimer = setInterval(() => {
+      fetchInquiries();
+    }, 12000);
+
+    // 2. Realtime Firestore listener for inquiries collection across all devices
+    let unsubscribeFirestore: (() => void) | null = null;
+    try {
+      const q = query(collection(db, 'inquiries'), limit(100));
+      unsubscribeFirestore = onSnapshot(
+        q,
+        (snap) => {
+          const fsList: Inquiry[] = [];
+          snap.forEach((doc) => {
+            fsList.push({ id: doc.id, ...doc.data() } as Inquiry);
+          });
+          if (fsList.length > 0) {
+            applyMergedInquiries([], fsList);
+          }
+        },
+        (err) => {
+          console.info('Firestore realtime inquiries listener inactive/offline:', err);
+        }
+      );
+    } catch (e) {
+      console.info('Firestore subscription skipped:', e);
+    }
+
+    return () => {
+      clearInterval(pollTimer);
+      if (unsubscribeFirestore) {
+        unsubscribeFirestore();
+      }
+    };
   }, []);
 
   const navItems: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }>; badge?: number }[] = [

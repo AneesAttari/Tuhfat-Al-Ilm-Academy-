@@ -380,6 +380,82 @@ export default {
       }
     }
 
+    // API Route: POST /api/test-email
+    if (url.pathname === '/api/test-email' && method === 'POST') {
+      try {
+        const body: any = await request.json().catch(() => ({}));
+        const targetEmail = (body.email || env.EMAIL_TO || DEFAULT_RECIPIENT).trim().toLowerCase();
+        const apiKey = env.RESEND_API_KEY;
+        const sender = env.EMAIL_FROM || DEFAULT_SENDER;
+        const now = new Date().toISOString();
+
+        const diagnostics: any = {
+          timestamp: now,
+          targetEmail,
+          sender,
+          hasResendKey: Boolean(apiKey),
+          resend: null,
+          formsubmit: null
+        };
+
+        if (apiKey) {
+          try {
+            const res = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                from: sender,
+                to: [targetEmail],
+                subject: `[Worker Live Test] Tuhfat Al-Ilm Academy Email Verification`,
+                text: `Assalamu Alaikum. This test email confirms that your Tuhfat Al-Ilm Academy Cloudflare email system is operating and delivering to ${targetEmail}. Sent at: ${now}`
+              })
+            });
+            const text = await res.text();
+            let parsed = null;
+            try { parsed = JSON.parse(text); } catch {}
+            diagnostics.resend = { status: res.status, ok: res.ok, response: parsed || text };
+          } catch (e: any) {
+            diagnostics.resend = { error: e.message };
+          }
+        }
+
+        try {
+          const fsRes = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetEmail)}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Referer': 'https://tuhfatalilm.online',
+              'Origin': 'https://tuhfatalilm.online'
+            },
+            body: JSON.stringify({
+              _subject: `[Worker Verification Test] Tuhfat Al-Ilm Academy Email Delivery`,
+              _cc: 'aneesattari67@gmail.com',
+              Message: `Assalamu Alaikum. This test email confirms admissions notifications from Tuhfat Al-Ilm Academy are arriving at ${targetEmail}.`,
+              Timestamp: now
+            })
+          });
+          const fsText = await fsRes.text();
+          let fsJson = null;
+          try { fsJson = JSON.parse(fsText); } catch {}
+          diagnostics.formsubmit = { status: fsRes.status, response: fsJson || fsText };
+        } catch (fsErr: any) {
+          diagnostics.formsubmit = { error: fsErr.message };
+        }
+
+        return jsonResponse({
+          success: true,
+          message: 'Test email execution finished.',
+          diagnostics
+        });
+      } catch (err: any) {
+        return jsonResponse({ error: 'Failed to process test email', details: err?.message }, 500);
+      }
+    }
+
     // API Route: POST /api/analytics/event
     if (url.pathname === '/api/analytics/event' && method === 'POST') {
       return jsonResponse({ status: 'ok', recorded: true });

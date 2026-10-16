@@ -25,5 +25,5 @@
 /faq/ /faq 301
 /contact/ /contact 301
 
-# Single Page App Routing Fallback
-/*    /index.html   200
+# Universal SPA fallback for all frontend routes
+/* /index.html 200
