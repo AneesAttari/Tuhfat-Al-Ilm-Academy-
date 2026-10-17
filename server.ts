@@ -704,18 +704,14 @@ You can manage this student and assign an instructor via the Admin Portal at /ad
 
   if (process.env.RESEND_API_KEY) {
     try {
-      const isValidEmail = Boolean(booking.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(booking.email));
-      const recipientList = [...new Set([
-        process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com',
-        'aneesattari67@gmail.com',
-        ...recipients
-      ])];
+      const primaryRecipient = process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com';
       const resendPayload: any = {
         from: process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>',
-        to: recipientList,
+        to: [primaryRecipient],
         subject: `New Free Trial Booking — Tuhfat Al-Ilm Academy: ${booking.name} (${booking.course})`,
         text: bodyText
       };
+      const isValidEmail = Boolean(booking.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(booking.email));
       if (isValidEmail && booking.email) {
         resendPayload.reply_to = booking.email;
       }
@@ -785,7 +781,6 @@ ${bodyText}`);
         },
         body: JSON.stringify({
           _subject: subject,
-          _cc: 'aneesattari67@gmail.com',
           _template: 'table',
           _captcha: 'false',
           'Student Name': booking.name,
@@ -812,12 +807,11 @@ ${bodyText}`);
   }
 
   try {
-    for (const recipient of recipients) {
-      await dbExecute(`
-        INSERT INTO email_notifications (id, inquiry_id, recipient, subject, body, status, error_message, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [crypto.randomUUID(), booking.id, recipient, subject, bodyText, status, errorMsg, now]);
-    }
+    const primaryRecipient = process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com';
+    await dbExecute(`
+      INSERT INTO email_notifications (id, inquiry_id, recipient, subject, body, status, error_message, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `, [crypto.randomUUID(), booking.id, primaryRecipient, subject, bodyText, status, errorMsg, now]);
 
     if (status === 'sent') {
       await dbExecute('UPDATE inquiries SET email_sent = 1 WHERE id = ?', [booking.id]);

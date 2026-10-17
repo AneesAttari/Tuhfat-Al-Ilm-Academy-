@@ -228,7 +228,6 @@ async function sendEmailNotification(env: Env, bookingRecord: any): Promise<{ se
       },
       body: JSON.stringify({
         _subject: `New Free Trial Class Booking: ${bookingRecord.name} (${bookingRecord.course})`,
-        _cc: 'aneesattari67@gmail.com',
         _template: 'table',
         _captcha: 'false',
         'Booking Reference ID': bookingRecord.id,
@@ -510,7 +509,6 @@ export default {
             },
             body: JSON.stringify({
               _subject: `[Worker Verification Test] Tuhfat Al-Ilm Academy Email Delivery`,
-              _cc: 'aneesattari67@gmail.com',
               Message: `Assalamu Alaikum. This test email confirms admissions notifications from Tuhfat Al-Ilm Academy are arriving at ${targetEmail}.`,
               Timestamp: now
             })

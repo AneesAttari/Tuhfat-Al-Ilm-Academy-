@@ -381,7 +381,6 @@ export async function onRequestPost(context: {
           },
           body: JSON.stringify({
             _subject: `New Free Trial Class Booking: ${name} (${course})`,
-            _cc: 'aneesattari67@gmail.com',
             _template: 'table',
             _captcha: 'false',
             'Booking Reference ID': bookingId,
