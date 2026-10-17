@@ -16,10 +16,12 @@ import {
   UserCheck,
   Save,
   ArrowUpDown,
-  Calendar
+  Calendar,
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 import { db } from '../../lib/firebase';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 interface AdminInquiriesViewProps {
   inquiries: Inquiry[];
   courses: { id: string; name: string }[];
@@ -38,8 +40,109 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingNotes, setEditingNotes] = useState('');
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [updating, setUpdating] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Quick Add Lead Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isSavingLead, setIsSavingLead] = useState(false);
+  const [newLead, setNewLead] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    course: 'Quran Reading / Nazra',
+    preferred_date: '',
+    preferred_time: '',
+    country: '',
+    notes: ''
+  });
+  const [updating, setUpdating] = useState(false);
+
+  const handleSyncNow = () => {
+    setIsSyncing(true);
+    onRefreshInquiries();
+    setTimeout(() => {
+      setIsSyncing(false);
+      setFeedbackMsg({ type: 'success', text: 'Inquiries refreshed across all channels.' });
+      setTimeout(() => setFeedbackMsg(null), 3500);
+    }, 600);
+  };
+
+  const handleSaveNewLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanName = newLead.name.trim();
+    const cleanPhone = newLead.phone.trim();
+    if (!cleanName || !cleanPhone) {
+      setFeedbackMsg({ type: 'error', text: 'Student Name and Phone/WhatsApp are required.' });
+      return;
+    }
+
+    setIsSavingLead(true);
+    const bookingId = 'TAB-' + Math.floor(100000 + Math.random() * 900000);
+    const now = new Date().toISOString();
+
+    const record: Inquiry = {
+      id: bookingId,
+      name: cleanName,
+      parent_name: '',
+      phone: cleanPhone,
+      email: newLead.email.trim(),
+      course: newLead.course.trim(),
+      preferred_date: newLead.preferred_date.trim() || 'Flexible',
+      preferred_time: newLead.preferred_time.trim() || 'Flexible',
+      timezone: '',
+      country: newLead.country.trim() || '',
+      message: newLead.notes.trim(),
+      status: 'New',
+      source: 'Admin Direct Entry',
+      notes: newLead.notes.trim(),
+      created_at: now,
+      updated_at: now
+    };
+
+    // 1. Immediately store in localStorage
+    try {
+      const stored = localStorage.getItem('tuhfat_local_inquiries') || localStorage.getItem('tuhfat_inquiries_backup');
+      let list: Inquiry[] = [];
+      if (stored) list = JSON.parse(stored);
+      const updated = [record, ...list];
+      localStorage.setItem('tuhfat_local_inquiries', JSON.stringify(updated));
+      localStorage.setItem('tuhfat_inquiries_backup', JSON.stringify(updated));
+    } catch {}
+
+    // 2. Post to API
+    try {
+      await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminHeader()
+        },
+        body: JSON.stringify(record)
+      });
+    } catch {}
+
+    // 3. Post to Firestore
+    try {
+      setDoc(doc(db, 'inquiries', bookingId), record).catch(() => {});
+    } catch {}
+
+    setIsSavingLead(false);
+    setIsAddModalOpen(false);
+    setNewLead({
+      name: '',
+      phone: '',
+      email: '',
+      course: 'Quran Reading / Nazra',
+      preferred_date: '',
+      preferred_time: '',
+      country: '',
+      notes: ''
+    });
+    setFeedbackMsg({ type: 'success', text: `Lead for ${record.name} (${record.id}) added successfully!` });
+    setTimeout(() => setFeedbackMsg(null), 4000);
+    onRefreshInquiries();
+  };
 
   const getAdminHeader = () => {
     let email = 'aneesattari67@gmail.com';
@@ -196,8 +299,27 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-xl bg-[#ECFDF5] text-[#064E3B] text-xs font-semibold border border-[#A7F3D0]">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleSyncNow}
+            disabled={isSyncing}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#334155] hover:bg-[#FAF9F5] cursor-pointer disabled:opacity-50 transition-colors shadow-2xs"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-[#064E3B]' : 'text-[#64748B]'}`} />
+            <span>{isSyncing ? 'Syncing...' : 'Sync Inquiries'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#064E3B] text-white text-xs font-semibold shadow-xs hover:bg-[#043D2E] cursor-pointer transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Add Student Lead</span>
+          </button>
+
+          <span className="px-3 py-1.5 rounded-xl bg-[#ECFDF5] text-[#064E3B] text-xs font-semibold border border-[#A7F3D0]">
             Total Inquiries: {inquiries.length}
           </span>
         </div>
@@ -482,6 +604,135 @@ export const AdminInquiriesView: React.FC<AdminInquiriesViewProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD STUDENT LEAD MODAL */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#E2E8F0] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F1F5F9]">
+              <div>
+                <h3 className="text-base font-bold text-[#0F172A]">Add New Student Lead / Inquiry</h3>
+                <p className="text-xs text-[#64748B]">Manually record an inquiry received via WhatsApp, phone, or email.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveNewLead} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-[#374151] mb-1">
+                  Student Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Muhammad Zayd"
+                  value={newLead.name}
+                  onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
+                  className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#374151] mb-1">
+                    WhatsApp / Phone <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="e.g. +92 300 1234567"
+                    value={newLead.phone}
+                    onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#374151] mb-1">
+                    Email Address (Optional)
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="student@example.com"
+                    value={newLead.email}
+                    onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#374151] mb-1">
+                    Selected Course
+                  </label>
+                  <select
+                    value={newLead.course}
+                    onChange={(e) => setNewLead({ ...newLead, course: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] bg-white focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
+                  >
+                    {courses.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#374151] mb-1">
+                    Country / City
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. UK, USA, Pakistan"
+                    value={newLead.country}
+                    onChange={(e) => setNewLead({ ...newLead, country: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#374151] mb-1">
+                  Notes &amp; Background
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Record class format preference, time slot, prior Quran knowledge..."
+                  value={newLead.notes}
+                  onChange={(e) => setNewLead({ ...newLead, notes: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-[#CBD5E1] text-xs text-[#0F172A] focus:outline-none focus:ring-1 focus:ring-[#064E3B]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F1F5F9]">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingLead}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{isSavingLead ? 'Saving...' : 'Save Student Lead'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

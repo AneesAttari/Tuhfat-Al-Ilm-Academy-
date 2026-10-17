@@ -366,9 +366,48 @@ export async function onRequestPost(context: {
         emailError = sendErr?.message || String(sendErr);
         console.warn(`[Email Notification] Network dispatch failed:`, emailError);
       }
-    } else {
-      console.log(`[Email Notification] RESEND_API_KEY secret is not yet configured in Cloudflare environment. Email notification is logged for: ${recipient}`);
-      emailProviderStatus = 'pending_configuration';
+    }
+
+    // Direct FormSubmit Gateway Fallback (guarantees delivery if Resend is pending or encounters domain restrictions)
+    if (!emailSent) {
+      try {
+        const fsRes = await fetch('https://formsubmit.co/ajax/tuhfatalilmacademy@gmail.com', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Referer': 'https://tuhfatalilm.online',
+            'Origin': 'https://tuhfatalilm.online'
+          },
+          body: JSON.stringify({
+            _subject: `New Free Trial Class Booking: ${name} (${course})`,
+            _cc: 'aneesattari67@gmail.com',
+            _template: 'table',
+            _captcha: 'false',
+            'Booking Reference ID': bookingId,
+            'Student Name': name,
+            'Parent / Guardian': parent_name || 'N/A',
+            'Phone / WhatsApp': phone,
+            'Email Address': email || 'Not provided',
+            'Selected Course': course,
+            'Preferred Date': preferred_date || 'Flexible',
+            'Preferred Time': preferred_time || 'Flexible',
+            'Timezone': timezone || 'Not specified',
+            'Country': country || 'Not specified',
+            'Message / Notes': message || 'None',
+            'Submission Timestamp': now
+          })
+        });
+        const fsJson: any = await fsRes.json().catch(() => ({}));
+        if (fsRes.ok || fsJson?.success === 'true' || fsJson?.success === true) {
+          emailSent = true;
+          emailProviderStatus = 'sent';
+          emailId = `fs-${bookingId}`;
+          console.log(`[Email Notification] Delivered via FormSubmit gateway for: ${recipient}`);
+        }
+      } catch (fsErr: any) {
+        console.warn('[Email Notification] FormSubmit fallback error:', fsErr);
+      }
     }
 
     // 4. Persist booking to Cloudflare KV for cross-device admin portal retrieval

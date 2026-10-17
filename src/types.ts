@@ -93,6 +93,11 @@ export interface Inquiry {
   status: 'New' | 'Contacted' | 'Pending' | 'In Progress' | 'Enrolled' | 'Completed' | 'Closed' | 'Archived';
   source?: string;
   notes?: string;
+  parent_name?: string;
+  preferred_date?: string;
+  preferred_time?: string;
+  timezone?: string;
+  country?: string;
   created_at: string;
   updated_at: string;
 }
