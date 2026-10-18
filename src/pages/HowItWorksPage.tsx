@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PageId } from '../types';
 import { trackEvent } from '../utils/analytics';
 import { ScrollReveal } from '../components/ScrollReveal';
+import { Card3D } from '../components/Card3D';
 import {
   Compass,
   Calendar,
@@ -170,11 +171,12 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal direction="fade-up">
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#064E3B] py-1.5 px-4 bg-white rounded-full border border-[#E5E2D9] shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-[#059669]" aria-hidden="true" />
+            <div className="flex items-center justify-center gap-2 text-xs font-semibold text-[#064E3B]">
               <span>Simple 4-Step Learning Path</span>
-              <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
+              <span aria-hidden="true" className="text-[#D9B44A]">·</span>
               <span>Available Worldwide 24/7</span>
+              <span aria-hidden="true" className="text-[#D9B44A]">·</span>
+              <span>1-on-1 Dedicated Classes</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#0F172A] [text-wrap:balance]">
@@ -348,61 +350,63 @@ export const HowItWorksPage: React.FC<HowItWorksPageProps> = ({ onNavigate }) =>
             const Icon = s.icon;
             return (
               <ScrollReveal key={idx} direction="fade-up" delay={idx * 80}>
-                <div className="h-full bg-white rounded-3xl p-6 sm:p-7 border border-[#E2E8F0] shadow-sm hover:shadow-md hover:border-[#A7F3D0] transition-all flex flex-col justify-between group">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="w-12 h-12 rounded-2xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs">
-                        <Icon className="w-6 h-6 text-[#059669]" />
+                <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
+                  <div className="h-full bg-white rounded-3xl p-6 sm:p-7 border border-[#E2E8F0] shadow-sm hover:shadow-xl hover:border-[#D9B44A]/40 transition-all flex flex-col justify-between group">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="w-12 h-12 rounded-2xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center group-hover:scale-105 transition-transform shadow-2xs [transform:translateZ(10px)]">
+                          <Icon className="w-6 h-6 text-[#059669]" />
+                        </div>
+                        <span className="text-xs font-mono font-bold tracking-wider px-3 py-1 rounded-full bg-[#FAF9F5] text-[#064E3B] border border-[#E5E2D9]">
+                          {s.step}
+                        </span>
                       </div>
-                      <span className="text-xs font-mono font-bold tracking-wider px-3 py-1 rounded-full bg-[#FAF9F5] text-[#064E3B] border border-[#E5E2D9]">
-                        {s.step}
-                      </span>
-                    </div>
 
-                    <div className="space-y-1">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#059669]">
-                        {s.badge}
-                      </span>
-                      <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-[#064E3B] transition-colors">
-                        {s.title}
-                      </h3>
-                      <p className="text-xs font-medium text-[#475569]">
-                        {s.subtitle}
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#059669]">
+                          {s.badge}
+                        </span>
+                        <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-[#064E3B] transition-colors">
+                          {s.title}
+                        </h3>
+                        <p className="text-xs font-medium text-[#475569]">
+                          {s.subtitle}
+                        </p>
+                      </div>
+
+                      <p className="text-xs text-[#64748B] leading-relaxed">
+                        {s.description}
                       </p>
+
+                      <ul className="space-y-2 pt-2 border-t border-[#F1F5F9]">
+                        {s.highlights.map((h, i) => (
+                          <li key={i} className="flex items-center gap-2 text-xs text-[#334155]">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" />
+                            <span>{h}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
 
-                    <p className="text-xs text-[#64748B] leading-relaxed">
-                      {s.description}
-                    </p>
-
-                    <ul className="space-y-2 pt-2 border-t border-[#F1F5F9]">
-                      {s.highlights.map((h, i) => (
-                        <li key={i} className="flex items-center gap-2 text-xs text-[#334155]">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#059669] shrink-0" />
-                          <span>{h}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="pt-4 mt-5 border-t border-[#F1F5F9] [transform:translateZ(12px)]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          trackEvent('how_it_works_step_action', { step: s.step, label: s.actionLabel });
+                          if (onNavigate) onNavigate(s.actionTarget);
+                        }}
+                        className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                          s.actionHighlight
+                            ? 'bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#032A20] text-white shadow-xs'
+                            : 'bg-[#FAF9F5] hover:bg-[#ECFDF5] text-[#064E3B] border border-[#E5E2D9] hover:border-[#A7F3D0]'
+                        }`}
+                      >
+                        <span>{s.actionLabel}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="pt-4 mt-5 border-t border-[#F1F5F9]">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        trackEvent('how_it_works_step_action', { step: s.step, label: s.actionLabel });
-                        if (onNavigate) onNavigate(s.actionTarget);
-                      }}
-                      className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                        s.actionHighlight
-                          ? 'bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#032A20] text-white shadow-xs'
-                          : 'bg-[#FAF9F5] hover:bg-[#ECFDF5] text-[#064E3B] border border-[#E5E2D9] hover:border-[#A7F3D0]'
-                      }`}
-                    >
-                      <span>{s.actionLabel}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
+                </Card3D>
               </ScrollReveal>
             );
           })}

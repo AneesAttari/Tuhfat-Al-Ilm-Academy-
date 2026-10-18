@@ -27,9 +27,92 @@
   font-family: 'Amiri', 'Traditional Arabic', serif;
 }
 
-/* Subtle geometric pattern overlay */
+/* Subtle geometric Islamic 8-point star pattern overlay with gold filigree */
 .bg-islamic-pattern {
   background-color: #064E3B;
-  background-image: radial-gradient(rgba(217, 180, 74, 0.15) 1px, transparent 0);
-  background-size: 24px 24px;
+  background-image: 
+    radial-gradient(rgba(217, 180, 74, 0.18) 1.5px, transparent 1.5px),
+    linear-gradient(45deg, rgba(217, 180, 74, 0.03) 25%, transparent 25%, transparent 75%, rgba(217, 180, 74, 0.03) 75%),
+    linear-gradient(-45deg, rgba(217, 180, 74, 0.03) 25%, transparent 25%, transparent 75%, rgba(217, 180, 74, 0.03) 75%);
+  background-size: 28px 28px, 56px 56px, 56px 56px;
+}
+
+/* Light Islamic arabesque geometric pattern for subtle hero backdrop */
+.bg-islamic-pattern-light {
+  background-color: transparent;
+  background-image: 
+    radial-gradient(rgba(6, 78, 59, 0.05) 1.5px, transparent 1.5px),
+    linear-gradient(45deg, rgba(217, 180, 74, 0.04) 25%, transparent 25%, transparent 75%, rgba(217, 180, 74, 0.04) 75%),
+    linear-gradient(-45deg, rgba(217, 180, 74, 0.04) 25%, transparent 25%, transparent 75%, rgba(217, 180, 74, 0.04) 75%);
+  background-size: 32px 32px, 64px 64px, 64px 64px;
+}
+
+/* 3D Depth Utilities */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.perspective-1200 {
+  perspective: 1200px;
+}
+
+.translate-z-10 {
+  transform: translateZ(10px);
+}
+
+.translate-z-20 {
+  transform: translateZ(20px);
+}
+
+.translate-z-30 {
+  transform: translateZ(30px);
+}
+
+/* Soft gold rim glow for cards */
+.gold-glow-subtle {
+  box-shadow: 0 0 0 1px rgba(217, 180, 74, 0.22), 0 8px 24px -6px rgba(6, 78, 59, 0.12);
+}
+
+.gold-glow-hover:hover {
+  box-shadow: 0 0 0 1px rgba(217, 180, 74, 0.45), 0 16px 32px -8px rgba(6, 78, 59, 0.18), 0 4px 12px -2px rgba(217, 180, 74, 0.15);
+}
+
+/* Tactile 3D button press interaction */
+.btn-tactile {
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease-out;
+}
+
+.btn-tactile:hover {
+  transform: translateY(-2px);
+}
+
+.btn-tactile:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* Subtle, dignified floating aura animation */
+@keyframes ambient-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(0.5deg);
+  }
+}
+
+.animate-ambient-float {
+  animation: ambient-float 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ambient-float {
+    animation: none !important;
+  }
+  .btn-tactile:hover, .btn-tactile:active {
+    transform: none !important;
+  }
 }
