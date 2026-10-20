@@ -2,7 +2,6 @@ import React from 'react';
 import { PageId } from '../types';
 import { ArrowRight, Compass, Heart, Users, BookOpen, CheckCircle2 } from 'lucide-react';
 import { ScrollReveal } from '../components/ScrollReveal';
-import { Card3D } from '../components/Card3D';
 import mosqueImg from '../assets/images/peaceful_mosque_courtyard.webp';
 
 interface AboutPageProps {
@@ -64,110 +63,102 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Section 1: Our Mission */}
         <ScrollReveal direction="fade-up" delay={0}>
-          <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
-            <div className="h-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#D9B44A]/40 transition-colors">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center mb-4 [transform:translateZ(12px)] shadow-xs">
-                  <Compass className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-[#0F172A]">Our Mission</h3>
-                <p className="text-sm sm:text-base text-[#475569] mt-3 leading-relaxed">
-                  Our mission is to make authentic Quranic reading, Tajweed pronunciation, memorization, and essential Islamic values easily accessible to students of all backgrounds worldwide. We aim to nurture a lifelong love and reverence for the Holy Quran in every learner.
-                </p>
+          <div className="h-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#A7F3D0] transition-colors">
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center mb-4">
+                <Compass className="w-6 h-6" />
               </div>
-              <ul className="space-y-2 border-t border-[#F1F5F9] pt-4 text-xs text-[#64748B]">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Cultivating love and understanding of Allah’s book</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Reliable online access regardless of geographic location</span>
-                </li>
-              </ul>
+              <h3 className="text-xl font-bold text-[#0F172A]">Our Mission</h3>
+              <p className="text-sm sm:text-base text-[#475569] mt-3 leading-relaxed">
+                Our mission is to make authentic Quranic reading, Tajweed pronunciation, memorization, and essential Islamic values easily accessible to students of all backgrounds worldwide. We aim to nurture a lifelong love and reverence for the Holy Quran in every learner.
+              </p>
             </div>
-          </Card3D>
+            <ul className="space-y-2 border-t border-[#F1F5F9] pt-4 text-xs text-[#64748B]">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+                <span>Cultivating love and understanding of Allah’s book</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+                <span>Reliable online access regardless of geographic location</span>
+              </li>
+            </ul>
+          </div>
         </ScrollReveal>
 
         {/* Section 2: Our Approach */}
         <ScrollReveal direction="fade-up" delay={120}>
-          <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
-            <div className="h-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#D9B44A]/40 transition-colors">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-[#FEF3C7] text-[#B45309] flex items-center justify-center mb-4 [transform:translateZ(12px)] shadow-xs">
-                  <Heart className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-[#0F172A]">Our Approach</h3>
-                <p className="text-sm sm:text-base text-[#475569] mt-3 leading-relaxed">
-                  We believe effective learning takes place in an atmosphere of warmth, patience, and mutual respect. We do not rush students through verses; rather, we ensure each sound, vowel, and rule is mastered thoroughly before advancing to the next level.
-                </p>
+          <div className="h-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#A7F3D0] transition-colors">
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-[#FEF3C7] text-[#B45309] flex items-center justify-center mb-4">
+                <Heart className="w-6 h-6" />
               </div>
-              <ul className="space-y-2 border-t border-[#F1F5F9] pt-4 text-xs text-[#64748B]">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Gentle, constructive correction for every student</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Adaptation to each student’s unique learning speed</span>
-                </li>
-              </ul>
+              <h3 className="text-xl font-bold text-[#0F172A]">Our Approach</h3>
+              <p className="text-sm sm:text-base text-[#475569] mt-3 leading-relaxed">
+                We believe effective learning takes place in an atmosphere of warmth, patience, and mutual respect. We do not rush students through verses; rather, we ensure each sound, vowel, and rule is mastered thoroughly before advancing to the next level.
+              </p>
             </div>
-          </Card3D>
+            <ul className="space-y-2 border-t border-[#F1F5F9] pt-4 text-xs text-[#64748B]">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+                <span>Gentle, constructive correction for every student</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+                <span>Adaptation to each student’s unique learning speed</span>
+              </li>
+            </ul>
+          </div>
         </ScrollReveal>
 
         {/* Section 3: Who We Teach */}
         <ScrollReveal direction="fade-up" delay={0}>
-          <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
-            <div className="h-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#D9B44A]/40 transition-colors">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] text-[#1E40AF] flex items-center justify-center mb-4 [transform:translateZ(12px)] shadow-xs">
-                  <Users className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-[#0F172A]">Who We Teach</h3>
-                <p className="text-sm sm:text-base text-[#475569] mt-3 leading-relaxed">
-                  Tuhfat Al-Ilm Academy welcomes a diverse international student body. Our programs are tailored for young children beginning with the Arabic alphabet, older youth polishing Tajweed or memorizing, as well as adult learners who want flexible evening or weekend classes.
-                </p>
+          <div className="h-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#A7F3D0] transition-colors">
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] text-[#1E40AF] flex items-center justify-center mb-4">
+                <Users className="w-6 h-6" />
               </div>
-              <ul className="space-y-2 border-t border-[#F1F5F9] pt-4 text-xs text-[#64748B]">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Children starting from age 4 and older</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Adult brothers and sisters desiring private one-to-one lessons</span>
-                </li>
-              </ul>
+              <h3 className="text-xl font-bold text-[#0F172A]">Who We Teach</h3>
+              <p className="text-sm sm:text-base text-[#475569] mt-3 leading-relaxed">
+                Tuhfat Al-Ilm Academy welcomes a diverse international student body. Our programs are tailored for young children beginning with the Arabic alphabet, older youth polishing Tajweed or memorizing, as well as adult learners who want flexible evening or weekend classes.
+              </p>
             </div>
-          </Card3D>
+            <ul className="space-y-2 border-t border-[#F1F5F9] pt-4 text-xs text-[#64748B]">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+                <span>Children starting from age 4 and older</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+                <span>Adult brothers and sisters desiring private one-to-one lessons</span>
+              </li>
+            </ul>
+          </div>
         </ScrollReveal>
 
         {/* Section 4: Our Learning Philosophy */}
         <ScrollReveal direction="fade-up" delay={120}>
-          <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
-            <div className="h-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#D9B44A]/40 transition-colors">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center mb-4 [transform:translateZ(12px)] shadow-xs">
-                  <BookOpen className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-[#0F172A]">Our Learning Philosophy</h3>
-                <p className="text-sm sm:text-base text-[#475569] mt-3 leading-relaxed">
-                  Knowledge (Ilm) is a noble trust. We emphasize not just mechanical recitation, but the character (Adab), intention, and moral values that accompany sacred learning. Students are encouraged to reflect upon what they learn and practice the daily Sunnahs in their lives.
-                </p>
+          <div className="h-full bg-white rounded-2xl p-8 border border-[#E2E8F0] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#A7F3D0] transition-colors">
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center mb-4">
+                <BookOpen className="w-6 h-6" />
               </div>
-              <ul className="space-y-2 border-t border-[#F1F5F9] pt-4 text-xs text-[#64748B]">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Balancing recitation skill with Islamic manners and character</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#059669]" />
-                  <span>Continuous encouragement and positive motivation</span>
-                </li>
-              </ul>
+              <h3 className="text-xl font-bold text-[#0F172A]">Our Learning Philosophy</h3>
+              <p className="text-sm sm:text-base text-[#475569] mt-3 leading-relaxed">
+                Knowledge (Ilm) is a noble trust. We emphasize not just mechanical recitation, but the character (Adab), intention, and moral values that accompany sacred learning. Students are encouraged to reflect upon what they learn and practice the daily Sunnahs in their lives.
+              </p>
             </div>
-          </Card3D>
+            <ul className="space-y-2 border-t border-[#F1F5F9] pt-4 text-xs text-[#64748B]">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+                <span>Balancing recitation skill with Islamic manners and character</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+                <span>Continuous encouragement and positive motivation</span>
+              </li>
+            </ul>
+          </div>
         </ScrollReveal>
       </div>
 
