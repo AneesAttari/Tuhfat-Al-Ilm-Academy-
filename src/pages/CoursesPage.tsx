@@ -16,7 +16,8 @@ import {
   ArrowRight,
   MessageCircle,
   X,
-  Filter
+  Filter,
+  Compass
 } from 'lucide-react';
 
 interface CoursesPageProps {
@@ -150,11 +151,24 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onNavigate }) => {
               )}
             </div>
 
-            {/* Results Counter */}
-            <div className="text-xs sm:text-sm font-semibold text-[#64748B] flex items-center gap-1.5 self-center">
-              <span>Showing</span>
-              <span className="font-bold text-[#064E3B]">{filteredCourses.length}</span>
-              <span>of {courses.length} courses</span>
+            {/* Results Counter & 3D Journey Link */}
+            <div className="flex items-center gap-3 self-center sm:self-auto">
+              <div className="text-xs sm:text-sm font-semibold text-[#64748B] flex items-center gap-1.5">
+                <span>Showing</span>
+                <span className="font-bold text-[#064E3B]">{filteredCourses.length}</span>
+                <span>of {courses.length} courses</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onNavigate('explore-journey')}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                title="Explore courses in interactive 3D universe"
+              >
+                <Compass className="w-3.5 h-3.5 text-[#D9B44A]" />
+                <span className="hidden sm:inline">Explore in</span>
+                <span>3D</span>
+              </button>
             </div>
           </div>
 

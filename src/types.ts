@@ -12,6 +12,7 @@ export type PageId =
   | 'not-found'
   | 'login'
   | 'register'
+  | 'explore-journey'
   | 'admin-login'
   | 'admin-dashboard';
 

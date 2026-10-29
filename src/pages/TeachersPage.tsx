@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageId, Teacher } from '../types';
 import { ScrollReveal } from '../components/ScrollReveal';
+import { Card3D } from '../components/Card3D';
 import { ShieldCheck, GraduationCap, Award, Heart, CheckCircle2, ArrowRight, UserCheck, MessageCircle } from 'lucide-react';
 import { getStoredTeachers, saveStoredTeachers } from '../data/teachers';
 
@@ -87,46 +88,48 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({ onNavigate }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {teachers.filter((t) => t.active !== false).map((t, idx) => (
           <ScrollReveal key={idx} direction="fade-up" delay={idx * 100}>
-            <div className="h-full bg-white rounded-3xl border border-[#E2E8F0] p-7 flex flex-col justify-between shadow-sm hover:border-[#A7F3D0] hover:shadow-md transition-all">
-              <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#064E3B] text-white flex items-center justify-center font-bold text-xl shadow-sm overflow-hidden shrink-0">
-                  {t.photoUrl ? (
-                    <img src={t.photoUrl} alt={t.name} width={56} height={56} className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{t.name.split(' ')[1]?.[0] || t.name[0] || 'Q'}</span>
-                  )}
+            <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
+              <div className="h-full bg-white rounded-3xl border border-[#E2E8F0] hover:border-[#D9B44A]/40 p-7 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all">
+                <div className="space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-[#064E3B] text-white flex items-center justify-center font-bold text-xl shadow-md overflow-hidden shrink-0 [transform:translateZ(14px)]">
+                    {t.photoUrl ? (
+                      <img src={t.photoUrl} alt={t.name} width={56} height={56} className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{t.name.split(' ')[1]?.[0] || t.name[0] || 'Q'}</span>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-xl font-bold text-[#0F172A]">{t.name}</h3>
+                    <span className="text-xs font-semibold text-[#059669] block mt-0.5">{t.role}</span>
+                  </div>
+
+                  <div className="space-y-2 text-xs text-[#475569] bg-[#FAF9F5] p-3.5 rounded-xl border border-[#E5E2D9] [transform:translateZ(8px)]">
+                    <p className="flex items-center gap-1.5 font-medium">
+                      <GraduationCap className="w-4 h-4 text-[#064E3B] shrink-0" />
+                      <span>{t.qualification}</span>
+                    </p>
+                    <p className="flex items-center gap-1.5 font-medium">
+                      <Award className="w-4 h-4 text-[#D97706] shrink-0" />
+                      <span>{t.experience}</span>
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-[#64748B] leading-relaxed">{t.desc}</p>
                 </div>
 
-                <div>
-                  <h3 className="text-xl font-bold text-[#0F172A]">{t.name}</h3>
-                  <span className="text-xs font-semibold text-[#059669] block mt-0.5">{t.role}</span>
+                <div className="mt-6 pt-4 border-t border-[#F1F5F9]">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('contact')}
+                    className="btn-tactile w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-bold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#064E3B] hover:text-white rounded-xl border border-[#A7F3D0] transition-all cursor-pointer shadow-xs"
+                  >
+                    <span>Request Class with {t.name.split(' ')[0]}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-
-                <div className="space-y-2 text-xs text-[#475569] bg-[#FAF9F5] p-3.5 rounded-xl border border-[#E5E2D9]">
-                  <p className="flex items-center gap-1.5 font-medium">
-                    <GraduationCap className="w-4 h-4 text-[#064E3B] shrink-0" />
-                    <span>{t.qualification}</span>
-                  </p>
-                  <p className="flex items-center gap-1.5 font-medium">
-                    <Award className="w-4 h-4 text-[#D97706] shrink-0" />
-                    <span>{t.experience}</span>
-                  </p>
-                </div>
-
-                <p className="text-xs text-[#64748B] leading-relaxed">{t.desc}</p>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-[#F1F5F9]">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('contact')}
-                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-bold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] rounded-xl border border-[#A7F3D0] transition-colors cursor-pointer"
-                >
-                  <span>Request Class with {t.name.split(' ')[0]}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
+            </Card3D>
           </ScrollReveal>
         ))}
       </div>

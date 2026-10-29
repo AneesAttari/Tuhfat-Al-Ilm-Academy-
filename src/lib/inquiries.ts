@@ -143,17 +143,15 @@ export async function submitInquiryOrTrial(
 
   const directEmailSync = async () => {
     try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://tuhfatalilm.online';
       await fetch('https://formsubmit.co/ajax/tuhfatalilmacademy@gmail.com', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Referer': origin,
-          'Origin': origin
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           _subject: `New Free Trial Class Booking: ${record.name} (${record.course})`,
+          _cc: 'aneesattari67@gmail.com',
           _template: 'table',
           _captcha: 'false',
           'Booking Reference ID': record.id,
@@ -176,11 +174,11 @@ export async function submitInquiryOrTrial(
     }
   };
 
-  // Run all sync operations concurrently with a 3000ms boundary
+  // Run all sync operations concurrently with a 2500ms boundary
   await Promise.allSettled([
-    syncTimeout(firestoreSync(), 3000),
-    syncTimeout(serverApiSync(), 3000),
-    syncTimeout(directEmailSync(), 3000)
+    syncTimeout(firestoreSync(), 2500),
+    syncTimeout(serverApiSync(), 2500),
+    syncTimeout(directEmailSync(), 2500)
   ]);
 
   return {

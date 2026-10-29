@@ -35,10 +35,11 @@ git fetch origin main master Domain || true
 # 5. Ensure tracking branch is main
 git branch -M main
 
-# If HEAD is detached or has no commits, reset to origin/main
+# If HEAD has no commits yet, stage and make initial commit
 if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
-  echo "Attaching HEAD to origin/main..."
-  git reset origin/main
+  echo "Setting up initial commit on main..."
+  git add -A
+  git commit -m "feat: initial commit from project files" || true
 fi
 
 # 6. Stage all changes

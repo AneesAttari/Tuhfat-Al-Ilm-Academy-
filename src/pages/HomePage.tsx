@@ -6,6 +6,9 @@ import { FAQS } from '../data/faqs';
 import { trackEvent } from '../utils/analytics';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { CourseCard } from '../components/CourseCard';
+import { Card3D } from '../components/Card3D';
+import { Hero3DStage } from '../components/Hero3DStage';
+import { InteractiveHowItWorks } from '../components/InteractiveHowItWorks';
 import {
   ArrowRight,
   MessageCircle,
@@ -24,7 +27,8 @@ import {
   Baby,
   UserCheck,
   Mail,
-  Phone
+  Phone,
+  Compass
 } from 'lucide-react';
 const heroImg = '/images/closed_quran_rehal.webp';
 const mosqueImg = '/images/peaceful_mosque_courtyard.webp';
@@ -143,27 +147,24 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </aside>
       )}
 
-      {/* 1. HERO SECTION (Research-Grounded, Responsive & Mobile-First "First Look") */}
-      <section className="relative bg-gradient-to-b from-[#F4F1EA] via-[#FAF9F5] to-white pt-6 sm:pt-10 pb-12 sm:pb-16 lg:pt-16 lg:pb-24 border-b border-[#E5E2D9]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 1. HERO SECTION (Research-Grounded, Responsive & Mobile-First "First Look" with 3D Depth) */}
+      <section className="relative bg-gradient-to-b from-[#F4F1EA] via-[#FAF9F5] to-white pt-6 sm:pt-10 pb-12 sm:pb-16 lg:pt-16 lg:pb-24 border-b border-[#E5E2D9] overflow-hidden">
+        {/* Ambient Islamic Geometric Pattern Backdrop & Soft Gold Glow */}
+        <div className="absolute inset-0 bg-islamic-pattern-light opacity-70 pointer-events-none" aria-hidden="true" />
+        <div className="absolute -top-32 right-10 w-[500px] h-[500px] rounded-full bg-radial from-[#D9B44A]/10 via-emerald-600/5 to-transparent blur-3xl pointer-events-none" aria-hidden="true" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Content Column */}
             <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-center lg:text-left">
-              {/* Responsive Benefit Badges: Reflows cleanly on all screen widths without broken text */}
+              {/* Grounded Academy Merits: Clean unboxed metadata with gold typographic separators (Zero-Pill Discipline) */}
               <ScrollReveal direction="fade-up" delay={30}>
-                <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-1.5 sm:gap-2 max-w-full">
-                  <span className="inline-flex items-center gap-1.5 py-1 px-3 bg-white/95 backdrop-blur-xs rounded-full border border-[#E5E2D9] shadow-2xs text-[11px] sm:text-xs font-semibold text-[#064E3B] whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" aria-hidden="true" />
-                    Structured Curriculum
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 py-1 px-3 bg-white/95 backdrop-blur-xs rounded-full border border-[#E5E2D9] shadow-2xs text-[11px] sm:text-xs font-semibold text-[#064E3B] whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" aria-hidden="true" />
-                    Qualified Teachers
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 py-1 px-3 bg-white/95 backdrop-blur-xs rounded-full border border-[#E5E2D9] shadow-2xs text-[11px] sm:text-xs font-semibold text-[#064E3B] whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" aria-hidden="true" />
-                    One-to-One Attention
-                  </span>
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3.5 gap-y-1.5 text-xs font-semibold text-[#064E3B]">
+                  <span>Structured Curriculum</span>
+                  <span aria-hidden="true" className="text-[#D9B44A]">·</span>
+                  <span>Qualified Huffaz &amp; Scholars</span>
+                  <span aria-hidden="true" className="text-[#D9B44A]">·</span>
+                  <span>1-on-1 Dedicated Classes</span>
                 </div>
               </ScrollReveal>
 
@@ -183,17 +184,38 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 </p>
               </ScrollReveal>
 
-              {/* Outcome-Oriented Action Buttons (WCAG 2.2 AA touch target size >= 48px) */}
+              {/* Outcome-Oriented Action Buttons (WCAG 2.2 AA touch target size >= 48px) with 3D tactile press */}
               <ScrollReveal direction="fade-up" delay={200}>
                 <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5">
-                  {/* Primary CTA: Outcome-oriented label leading to courses */}
+                  {/* Primary CTA: Book a Free Trial directly */}
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('contact')}
+                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 min-h-[48px] text-sm font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#022C22] border border-transparent hover:border-[#D9B44A]/40 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap"
+                  >
+                    <span>Book a Free Trial</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  {/* Secondary CTA: Explore Courses */}
                   <button
                     type="button"
                     onClick={handleScrollToCourses}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 min-h-[48px] text-sm font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#022C22] rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap"
+                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] text-sm font-semibold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] active:bg-[#A7F3D0] border border-[#A7F3D0] rounded-xl shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap cursor-pointer"
                   >
-                    <span>Start Learning</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <BookOpen className="w-4 h-4 text-[#064E3B]" />
+                    <span>View Courses</span>
+                  </button>
+
+                  {/* 3D Interactive Learning Universe CTA */}
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('explore-journey')}
+                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] text-sm font-semibold text-[#064E3B] bg-white hover:bg-[#FAF9F5] active:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap cursor-pointer"
+                    title="Explore courses in our interactive 3D universe"
+                  >
+                    <Compass className="w-4 h-4 text-[#D9B44A]" />
+                    <span>3D Journey</span>
                   </button>
 
                   {/* Secondary CTA: Explicit WhatsApp link with verified number */}
@@ -202,11 +224,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => trackEvent('whatsapp_click', { page: '/' })}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] text-sm font-semibold text-[#064E3B] bg-white hover:bg-[#F0FDF4] active:bg-[#DCFCE7] border border-[#CBD5E1] hover:border-[#86EFAC] rounded-xl shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap"
+                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] text-sm font-semibold text-[#064E3B] bg-white hover:bg-[#F0FDF4] active:bg-[#DCFCE7] border border-[#CBD5E1] hover:border-[#86EFAC] rounded-xl shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap"
                     aria-label="Contact Tuhfat Al-Ilm Academy on WhatsApp (opens in new tab)"
                   >
                     <MessageCircle className="w-4 h-4 text-[#059669]" />
-                    <span>Contact Us on WhatsApp</span>
+                    <span>WhatsApp</span>
                   </a>
                 </div>
 
@@ -230,46 +252,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               </ScrollReveal>
             </div>
 
-            {/* Right Hero Image Frame: Approved respectful visual anchor */}
+            {/* Right Hero Image Frame: 3D Perspective Stage with Multi-Layer Parallax Depth */}
             <div className="lg:col-span-5 flex justify-center">
-              <ScrollReveal direction="fade-left" delay={160} className="w-full max-w-md lg:max-w-none">
-                <div className="relative">
-                  <div className="relative rounded-2xl overflow-hidden bg-white p-2 sm:p-2.5 border border-[#E2E8F0] shadow-md">
-                    <div className="relative aspect-[16/10] sm:aspect-[16/11] rounded-xl overflow-hidden bg-[#FAF9F5]">
-                      <img
-                        src={heroImg}
-                        alt="A respectfully placed closed Quran-e-Pak on a wooden rehal at Tuhfat Al-Ilm Academy."
-                        width={600}
-                        height={412}
-                        className="w-full h-full object-cover object-center"
-                        loading="eager"
-                        decoding="async"
-                        fetchPriority="high"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent pointer-events-none" />
-                      <div className="absolute bottom-3 left-3 right-3 text-white text-xs">
-                        <p className="font-semibold text-sm drop-shadow-sm">Tuhfat Al-Ilm Academy</p>
-                        <p className="text-white/85 drop-shadow-sm text-[11px]">
-                          Authentic Quranic learning from the comfort of home
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Grounded Institutional Trust Callout */}
-                  <div className="mt-3 flex items-center justify-between px-3.5 py-2.5 bg-white rounded-xl border border-[#E2E8F0] text-xs text-[#475569] shadow-2xs">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-[#059669]" />
-                      <span>Certified Qaris &amp; Scholars</span>
-                    </div>
-                    <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#059669]" />
-                      <span>Worldwide Schedules</span>
-                    </div>
-                  </div>
-                </div>
+              <ScrollReveal direction="fade-left" delay={160} className="w-full">
+                <Hero3DStage onExploreCourses={handleScrollToCourses} />
               </ScrollReveal>
             </div>
           </div>
@@ -295,90 +281,153 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Children Pathway */}
           <ScrollReveal direction="fade-up" delay={0}>
-            <div className="h-full bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-11 h-11 rounded-xl bg-[#ECFDF5] text-[#064E3B] flex items-center justify-center">
-                  <Baby className="w-6 h-6" />
+            <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
+              <div className="h-full bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs hover:border-[#D9B44A]/40 flex flex-col justify-between transition-colors">
+                <div className="space-y-4">
+                  <div className="w-11 h-11 rounded-xl bg-[#ECFDF5] text-[#064E3B] border border-[#A7F3D0] flex items-center justify-center [transform:translateZ(12px)] shadow-xs">
+                    <Baby className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-[#0F172A]">Programs for Children (Ages 4+)</h3>
+                    <p className="text-xs font-semibold text-[#064E3B] mt-0.5">Patient, Engaging &amp; Step-by-Step</p>
+                  </div>
+                  <p className="text-sm text-[#475569] leading-relaxed">
+                    Young learners begin with basic Arabic letter recognition and Makharij through the Qaida, moving steadily toward fluent Nazra Quran recitation with daily duas and Islamic manners (Adaab).
+                  </p>
+                  <ul className="space-y-2 text-xs sm:text-sm text-[#334155] pt-1">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
+                      <span>Gentle, encouraging guidance tailored to young attention spans</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
+                      <span>Daily Sunnah duas, Kalimahs, and practical Islamic morals</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
+                      <span>Regular feedback shared directly with parents</span>
+                    </li>
+                  </ul>
                 </div>
-                <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-[#0F172A]">Programs for Children (Ages 4+)</h3>
-                  <p className="text-xs font-semibold text-[#064E3B] mt-0.5">Patient, Engaging &amp; Step-by-Step</p>
-                </div>
-                <p className="text-sm text-[#475569] leading-relaxed">
-                  Young learners begin with basic Arabic letter recognition and Makharij through the Qaida, moving steadily toward fluent Nazra Quran recitation with daily duas and Islamic manners (Adaab).
-                </p>
-                <ul className="space-y-2 text-xs sm:text-sm text-[#334155] pt-1">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
-                    <span>Gentle, encouraging guidance tailored to young attention spans</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
-                    <span>Daily Sunnah duas, Kalimahs, and practical Islamic morals</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
-                    <span>Regular feedback shared directly with parents</span>
-                  </li>
-                </ul>
-              </div>
 
-              <div className="pt-6 mt-6 border-t border-[#F1F5F9]">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('course-detail', 'childrens-islamic-education')}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl text-xs sm:text-sm font-semibold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] transition-colors cursor-pointer"
-                >
-                  <span>Explore Children’s Curriculum</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="pt-6 mt-6 border-t border-[#F1F5F9]">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('course-detail', 'childrens-islamic-education')}
+                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl text-xs sm:text-sm font-semibold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] transition-colors cursor-pointer"
+                  >
+                    <span>Explore Children’s Curriculum</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-            </div>
+            </Card3D>
           </ScrollReveal>
 
           {/* Adult Learners Pathway */}
           <ScrollReveal direction="fade-up" delay={120}>
-            <div className="h-full bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="w-11 h-11 rounded-xl bg-[#EFF6FF] text-[#1E40AF] flex items-center justify-center">
-                  <UserCheck className="w-6 h-6" />
+            <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
+              <div className="h-full bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs hover:border-[#D9B44A]/40 flex flex-col justify-between transition-colors">
+                <div className="space-y-4">
+                  <div className="w-11 h-11 rounded-xl bg-[#EFF6FF] text-[#1E40AF] border border-[#BFDBFE] flex items-center justify-center [transform:translateZ(12px)] shadow-xs">
+                    <UserCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-[#0F172A]">Programs for Adult Learners</h3>
+                    <p className="text-xs font-semibold text-[#1E40AF] mt-0.5">Flexible, Respectful &amp; Thorough</p>
+                  </div>
+                  <p className="text-sm text-[#475569] leading-relaxed">
+                    Adult brothers and sisters can correct their recitation pronunciation, master Tajweed rules, memorize Surahs, or study Quran translation with contextual meaning at convenient times.
+                  </p>
+                  <ul className="space-y-2 text-xs sm:text-sm text-[#334155] pt-1">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
+                      <span>Tajweed correction for clear, melodious recitation in Salah</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
+                      <span>Quran Translation &amp; essential Fiqh of daily worship</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
+                      <span>Flexible morning or evening schedules aligned with work routines</span>
+                    </li>
+                  </ul>
                 </div>
-                <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-[#0F172A]">Programs for Adult Learners</h3>
-                  <p className="text-xs font-semibold text-[#1E40AF] mt-0.5">Flexible, Respectful &amp; Thorough</p>
+
+                <div className="pt-6 mt-6 border-t border-[#F1F5F9]">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('course-detail', 'tajweed')}
+                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl text-xs sm:text-sm font-semibold text-[#1E40AF] bg-[#EFF6FF] hover:bg-[#DBEAFE] border border-[#BFDBFE] transition-colors cursor-pointer"
+                  >
+                    <span>Explore Tajweed &amp; Adult Courses</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <p className="text-sm text-[#475569] leading-relaxed">
-                  Adult brothers and sisters can correct their recitation pronunciation, master Tajweed rules, memorize Surahs, or study Quran translation with contextual meaning at convenient times.
-                </p>
-                <ul className="space-y-2 text-xs sm:text-sm text-[#334155] pt-1">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
-                    <span>Tajweed correction for clear, melodious recitation in Salah</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
-                    <span>Quran Translation &amp; essential Fiqh of daily worship</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
-                    <span>Flexible morning or evening schedules aligned with work routines</span>
-                  </li>
-                </ul>
+              </div>
+            </Card3D>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* 2.5 INTERACTIVE 3D UNIVERSE PORTAL: "EXPLORE YOUR LEARNING JOURNEY" */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal direction="fade-up">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#064E3B] via-[#043D2E] to-[#022C22] text-white p-6 sm:p-10 lg:p-12 border border-[#D9B44A]/40 shadow-2xl">
+            {/* Subtle Islamic Geometric Rosette in Background */}
+            <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-[#D9B44A]/10 blur-2xl pointer-events-none" aria-hidden="true" />
+            <div className="absolute right-6 bottom-4 opacity-10 pointer-events-none hidden md:block" aria-hidden="true">
+              <Compass className="w-64 h-64 text-[#D9B44A]" />
+            </div>
+
+            <div className="relative max-w-2xl space-y-4">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#FDE68A] uppercase tracking-wider">
+                <Compass className="w-4 h-4 text-[#D9B44A]" />
+                <span>Interactive 3D Experience</span>
               </div>
 
-              <div className="pt-6 mt-6 border-t border-[#F1F5F9]">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
+                Explore Your Learning Journey in an Immersive 3D Garden
+              </h2>
+
+              <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-normal">
+                Step into a virtual architectural courtyard inspired by classical Islamic geometry. Tour 9 distinct course pavilions, interact with fountains and archways, and discover the personalized learning path suited to your family.
+              </p>
+
+              {/* Zero-Pill Features Strip */}
+              <div className="pt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#A7F3D0]">
+                <span>9 Interactive Pavilions</span>
+                <span aria-hidden="true" className="text-emerald-500">·</span>
+                <span>Day &amp; Peaceful Evening Modes</span>
+                <span aria-hidden="true" className="text-emerald-500">·</span>
+                <span>Smooth 3D Orbit &amp; Zoom</span>
+                <span aria-hidden="true" className="text-emerald-500">·</span>
+                <span>Direct Syllabus Discovery</span>
+              </div>
+
+              <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => onNavigate('course-detail', 'tajweed')}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl text-xs sm:text-sm font-semibold text-[#1E40AF] bg-[#EFF6FF] hover:bg-[#DBEAFE] border border-[#BFDBFE] transition-colors cursor-pointer"
+                  onClick={() => onNavigate('explore-journey')}
+                  className="btn-tactile inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-[#064E3B] bg-[#FDE68A] hover:bg-[#FCD34D] active:bg-[#F59E0B] shadow-lg transition-all cursor-pointer"
                 >
-                  <span>Explore Tajweed &amp; Adult Courses</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <Compass className="w-4 h-4 text-[#064E3B]" />
+                  <span>Enter 3D Universe</span>
+                  <ArrowRight className="w-4 h-4 text-[#064E3B]" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleScrollToCourses}
+                  className="btn-tactile inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/15 border border-white/20 transition-all cursor-pointer"
+                >
+                  <span>Or Browse Standard Course Grid</span>
                 </button>
               </div>
             </div>
-          </ScrollReveal>
-        </div>
+          </div>
+        </ScrollReveal>
       </section>
 
       {/* 3. FEATURED COURSES SHOWCASE: ACTUAL CURRICULUM PROGRAMS */}
@@ -467,103 +516,24 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* 4. HOW ONLINE LEARNING WORKS: 4 CONCRETE STEPS */}
+      {/* 4. HOW ONLINE LEARNING WORKS: INTERACTIVE 4-STEP VISUAL EXPERIENCE */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal direction="fade-up">
-          <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
             <span className="text-xs font-semibold text-[#064E3B] uppercase tracking-wider">
-              Simple 4-Step Process
+              Interactive 4-Step Process
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-[#0F172A] mt-1.5 tracking-tight">
               How Online Classes Work
             </h2>
             <p className="text-sm sm:text-base text-[#475569] mt-2">
-              From your initial inquiry to regular lessons, beginning your education with us is simple and structured.
+              From your initial inquiry to regular lessons, beginning your education with us is simple, guided, and interactive.
             </p>
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ScrollReveal direction="fade-up" delay={0}>
-            <div className="h-full bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs hover:border-[#A7F3D0] transition-colors flex flex-col justify-between">
-              <div>
-                <span className="w-8 h-8 rounded-lg bg-[#064E3B] text-white flex items-center justify-center font-bold text-sm mb-3">
-                  1
-                </span>
-                <h3 className="text-base font-bold text-[#0F172A]">Contact Admissions</h3>
-                <p className="text-sm text-[#475569] mt-2 leading-relaxed">
-                  Send a message on WhatsApp or reach out via our contact form to introduce yourself or your child.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-[#F1F5F9] text-[11px] text-[#64748B]">
-                Immediate admissions response
-              </div>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal direction="fade-up" delay={80}>
-            <div className="h-full bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs hover:border-[#A7F3D0] transition-colors flex flex-col justify-between">
-              <div>
-                <span className="w-8 h-8 rounded-lg bg-[#064E3B] text-white flex items-center justify-center font-bold text-sm mb-3">
-                  2
-                </span>
-                <h3 className="text-base font-bold text-[#0F172A]">Goal &amp; Level Review</h3>
-                <p className="text-sm text-[#475569] mt-2 leading-relaxed">
-                  We discuss your starting point (Qaida beginner, Tajweed refresher, or Hifz) and match the right course.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-[#F1F5F9] text-[11px] text-[#64748B]">
-                Tailored starting curriculum
-              </div>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal direction="fade-up" delay={160}>
-            <div className="h-full bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs hover:border-[#A7F3D0] transition-colors flex flex-col justify-between">
-              <div>
-                <span className="w-8 h-8 rounded-lg bg-[#064E3B] text-white flex items-center justify-center font-bold text-sm mb-3">
-                  3
-                </span>
-                <h3 className="text-base font-bold text-[#0F172A]">Set Your Schedule</h3>
-                <p className="text-sm text-[#475569] mt-2 leading-relaxed">
-                  Choose class days and times aligned with your family or work commitments, across any international timezone.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-[#F1F5F9] text-[11px] text-[#64748B]">
-                Flexible days &amp; times
-              </div>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal direction="fade-up" delay={240}>
-            <div className="h-full bg-white p-6 rounded-2xl border border-[#E2E8F0] shadow-xs hover:border-[#A7F3D0] transition-colors flex flex-col justify-between">
-              <div>
-                <span className="w-8 h-8 rounded-lg bg-[#064E3B] text-white flex items-center justify-center font-bold text-sm mb-3">
-                  4
-                </span>
-                <h3 className="text-base font-bold text-[#0F172A]">Begin 1-on-1 Lessons</h3>
-                <p className="text-sm text-[#475569] mt-2 leading-relaxed">
-                  Join your dedicated teacher online for live screen-sharing, gentle pronunciation correction, and steady progress.
-                </p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-[#F1F5F9] text-[11px] text-[#64748B]">
-                100% individual attention
-              </div>
-            </div>
-          </ScrollReveal>
-        </div>
-
-        <ScrollReveal direction="fade-up" delay={120}>
-          <div className="mt-8 text-center">
-            <button
-              type="button"
-              onClick={() => onNavigate('contact')}
-              className="inline-flex items-center gap-2 px-6 py-3 min-h-[44px] text-sm font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] rounded-xl shadow-xs transition-all cursor-pointer"
-            >
-              <span>Inquire &amp; Arrange Class Times</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+        <ScrollReveal direction="fade-up" delay={60}>
+          <InteractiveHowItWorks onNavigate={onNavigate} />
         </ScrollReveal>
       </section>
 
@@ -599,38 +569,40 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {featuredTeachers.map((teacher, idx) => (
               <ScrollReveal key={teacher.id || idx} direction="fade-up" delay={idx * 90}>
-                <article className="h-full bg-[#FAF9F5] p-6 rounded-2xl border border-[#E2E8F0] shadow-xs flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <div className="w-12 h-12 rounded-xl bg-[#ECFDF5] text-[#064E3B] border border-[#A7F3D0] flex items-center justify-center font-bold text-base">
-                      {teacher.name.split(' ').slice(1, 3).map((n) => n[0]).join('') || 'TI'}
-                    </div>
-
-                    <div>
-                      <h3 className="text-lg font-bold text-[#0F172A]">{teacher.name}</h3>
-                      <p className="text-xs font-semibold text-[#064E3B]">{teacher.role}</p>
-                    </div>
-
-                    <div className="space-y-1.5 pt-1 text-xs text-[#475569]">
-                      <div className="flex items-center gap-2">
-                        <Award className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
-                        <span>{teacher.qualification}</span>
+                <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
+                  <article className="h-full bg-[#FAF9F5] p-6 rounded-2xl border border-[#E2E8F0] shadow-xs hover:border-[#D9B44A]/40 flex flex-col justify-between transition-colors">
+                    <div className="space-y-3">
+                      <div className="w-12 h-12 rounded-xl bg-[#ECFDF5] text-[#064E3B] border border-[#A7F3D0] flex items-center justify-center font-bold text-base [transform:translateZ(10px)] shadow-xs">
+                        {teacher.name.split(' ').slice(1, 3).map((n) => n[0]).join('') || 'TI'}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 text-[#059669] shrink-0" />
-                        <span>{teacher.experience}</span>
+
+                      <div>
+                        <h3 className="text-lg font-bold text-[#0F172A]">{teacher.name}</h3>
+                        <p className="text-xs font-semibold text-[#064E3B]">{teacher.role}</p>
                       </div>
+
+                      <div className="space-y-1.5 pt-1 text-xs text-[#475569]">
+                        <div className="flex items-center gap-2">
+                          <Award className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
+                          <span>{teacher.qualification}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-[#059669] shrink-0" />
+                          <span>{teacher.experience}</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-[#64748B] leading-relaxed pt-2 border-t border-[#E5E2D9]">
+                        {teacher.desc}
+                      </p>
                     </div>
 
-                    <p className="text-xs text-[#64748B] leading-relaxed pt-2 border-t border-[#E5E2D9]">
-                      {teacher.desc}
-                    </p>
-                  </div>
-
-                  <div className="pt-4 mt-4 border-t border-[#E5E2D9] flex items-center justify-between text-xs text-[#64748B]">
-                    <span className="font-medium text-[#064E3B]">{teacher.specialty.split(',')[0]}</span>
-                    <span>1-on-1 Classes</span>
-                  </div>
-                </article>
+                    <div className="pt-4 mt-4 border-t border-[#E5E2D9] flex items-center justify-between text-xs text-[#64748B]">
+                      <span className="font-medium text-[#064E3B]">{teacher.specialty.split(',')[0]}</span>
+                      <span>1-on-1 Classes</span>
+                    </div>
+                  </article>
+                </Card3D>
               </ScrollReveal>
             ))}
           </div>
@@ -781,7 +753,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 onClick={() => onNavigate('contact')}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 min-h-[48px] text-sm font-bold text-[#064E3B] bg-white hover:bg-[#FAF9F5] rounded-xl shadow-xs transition-colors cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
-                <span>Inquire &amp; Enroll Online</span>
+                <span>Book Free Trial Class</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 

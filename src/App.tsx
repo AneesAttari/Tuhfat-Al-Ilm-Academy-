@@ -21,9 +21,10 @@ import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Keep heavy admin bundle code-split so normal visitors don't load charts and tables
+// Keep heavy admin bundle and 3D engine code-split so normal visitors load fast
 const AdminLoginPage = React.lazy(() => import('./admin/AdminLoginPage').then(m => ({ default: m.AdminLoginPage })));
 const AdminDashboardPage = React.lazy(() => import('./admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
+const ExploreJourneyPage = React.lazy(() => import('./pages/ExploreJourneyPage').then(m => ({ default: m.ExploreJourneyPage })));
 
 interface RouteState {
   page: PageId;
@@ -69,6 +70,7 @@ const BASE_PAGE_TITLES: Record<PageId, string> = {
   'not-found': 'Page Not Found | Tuhfat Al-Ilm Academy',
   login: 'Student Sign In | Tuhfat Al-Ilm Academy',
   register: 'Create Student Account | Tuhfat Al-Ilm Academy',
+  'explore-journey': 'Explore Your Learning Journey in 3D | Tuhfat Al-Ilm Academy',
   'admin-login': 'Admin Portal | Tuhfat Al-Ilm Academy',
   'admin-dashboard': 'Admin Dashboard | Tuhfat Al-Ilm Academy'
 };
@@ -82,6 +84,7 @@ const PAGE_DESCRIPTIONS: Partial<Record<PageId, string>> = {
   resources: 'Free Islamic and Quranic learning materials, Qaida pronunciation rules, Tajweed summary sheets, and authentic daily Adhkar.',
   faq: 'Frequently Asked Questions about class schedules, female instructors, child education, pricing, and 1-on-1 online Quran learning.',
   contact: 'Book a Free Trial Class or contact Tuhfat Al-Ilm Academy admissions via WhatsApp +923171503094, phone, email, or online form.',
+  'explore-journey': 'Immerse yourself in our interactive 3D Islamic learning garden to discover Quran Nazra, Hifz, Tajweed, and Islamic studies programs.',
   health: 'Live infrastructure health telemetry and database status for Tuhfat Al-Ilm Academy.',
   'not-found': 'The requested page could not be found. Explore our Quran and Islamic education programs at Tuhfat Al-Ilm Academy.'
 };
@@ -113,6 +116,9 @@ function parseRouteFromLocation(): RouteState {
       if (rawHash === 'health') return { page: 'health' };
       if (rawHash === 'login') return { page: 'login' };
       if (rawHash === 'register') return { page: 'register' };
+      if (rawHash === 'explore-journey' || rawHash === 'explore-3d' || rawHash === 'journey' || rawHash === '3d') {
+        return { page: 'explore-journey' };
+      }
       if (rawHash === 'admin-login') return { page: 'admin-login' };
       if (rawHash === 'admin' || rawHash === 'admin-dashboard') return { page: 'admin-dashboard' };
       if (rawHash.startsWith('admin/')) {
@@ -138,6 +144,9 @@ function parseRouteFromLocation(): RouteState {
   if (rawPath === '/health') return { page: 'health' };
   if (rawPath === '/login') return { page: 'login' };
   if (rawPath === '/register') return { page: 'register' };
+  if (rawPath === '/explore-journey' || rawPath === '/explore-3d' || rawPath === '/journey' || rawPath === '/3d') {
+    return { page: 'explore-journey' };
+  }
   if (rawPath === '/admin-login' || rawPath === '/admin/login') return { page: 'admin-login' };
   if (rawPath === '/admin' || rawPath === '/admin-dashboard') return { page: 'admin-dashboard' };
   if (rawPath.startsWith('/admin/')) {
@@ -357,6 +366,12 @@ export default function App() {
         return <LoginPage initialMode="login" onAuthSuccess={handleUserAuthSuccess} onNavigate={navigateTo} />;
       case 'register':
         return <LoginPage initialMode="register" onAuthSuccess={handleUserAuthSuccess} onNavigate={navigateTo} />;
+      case 'explore-journey':
+        return (
+          <React.Suspense fallback={renderSuspenseFallback()}>
+            <ExploreJourneyPage onNavigate={navigateTo} initialCourseSlug={route.courseSlug} />
+          </React.Suspense>
+        );
       case 'admin-login':
         return (
           <React.Suspense fallback={renderSuspenseFallback()}>

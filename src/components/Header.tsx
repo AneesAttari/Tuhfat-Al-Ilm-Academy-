@@ -131,6 +131,19 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => handleNavClick('explore-journey')}
+              className={`transition-colors hover:text-[#064E3B] py-1 cursor-pointer flex items-center gap-1.5 ${
+                currentPage === 'explore-journey'
+                  ? 'text-[#064E3B] font-bold border-b-2 border-[#064E3B]'
+                  : 'text-[#064E3B]'
+              }`}
+              title="Explore Your Learning Journey in 3D"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D9B44A]" />
+              <span>3D Journey</span>
+            </button>
+            <button
+              type="button"
               onClick={() => handleNavClick('teachers')}
               className={`transition-colors hover:text-[#064E3B] py-1 cursor-pointer ${
                 currentPage === 'teachers'
@@ -453,6 +466,26 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <span>Courses</span>
             {isCoursesActive && <span className="w-1.5 h-1.5 rounded-full bg-[#064E3B]" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleNavClick('explore-journey')}
+            className={`w-full text-left px-4 py-3 rounded-xl text-base font-semibold transition-colors flex items-center justify-between cursor-pointer ${
+              currentPage === 'explore-journey'
+                ? 'bg-[#ECFDF5] text-[#064E3B]'
+                : 'text-[#064E3B] bg-[#FAF9F5] hover:bg-neutral-50'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#D9B44A]" />
+              <span>3D Learning Journey</span>
+            </span>
+            {currentPage === 'explore-journey' ? (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#064E3B]" />
+            ) : (
+              <span className="text-[10px] uppercase font-bold text-[#D9B44A] tracking-wider">3D Garden</span>
+            )}
           </button>
 
           <button

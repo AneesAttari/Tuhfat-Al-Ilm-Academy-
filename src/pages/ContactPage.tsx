@@ -68,10 +68,16 @@ export const ContactPage: React.FC<ContactPageProps> = ({
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [copiedId, setCopiedId] = useState(false);
 
-  // Sync initialCourse prop if it changes
+  // Sync initialCourse prop if it changes and scroll into view
   useEffect(() => {
     if (initialCourse) {
       setCourse(initialCourse);
+      setFormMode('trial');
+      const timer = setTimeout(() => {
+        const card = document.getElementById('booking-form-card');
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [initialCourse]);
 

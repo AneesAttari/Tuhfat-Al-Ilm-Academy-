@@ -705,9 +705,15 @@ You can manage this student and assign an instructor via the Admin Portal at /ad
   if (process.env.RESEND_API_KEY) {
     try {
       const primaryRecipient = process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com';
+      const adminOwner = 'aneesattari67@gmail.com';
+      const sender = process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>';
+      const toRecipients = sender.includes('resend.dev')
+        ? [adminOwner]
+        : Array.from(new Set([primaryRecipient, adminOwner]));
+
       const resendPayload: any = {
-        from: process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>',
-        to: [primaryRecipient],
+        from: sender,
+        to: toRecipients,
         subject: `New Free Trial Booking — Tuhfat Al-Ilm Academy: ${booking.name} (${booking.course})`,
         text: bodyText
       };
@@ -781,6 +787,7 @@ ${bodyText}`);
         },
         body: JSON.stringify({
           _subject: subject,
+          _cc: 'aneesattari67@gmail.com',
           _template: 'table',
           _captcha: 'false',
           'Student Name': booking.name,

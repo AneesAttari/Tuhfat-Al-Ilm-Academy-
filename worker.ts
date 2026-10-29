@@ -176,15 +176,21 @@ function generateBookingEmailHtml(data: {
 
 async function sendEmailNotification(env: Env, bookingRecord: any): Promise<{ sent: boolean; status: string; id?: string; error?: string }> {
   const recipient = env.EMAIL_TO || DEFAULT_RECIPIENT;
+  const adminOwner = 'aneesattari67@gmail.com';
   const sender = env.EMAIL_FROM || DEFAULT_SENDER;
   const apiKey = env.RESEND_API_KEY;
 
   // 1. Attempt delivery via Resend API if API key is present in Cloudflare secrets
   if (apiKey) {
     try {
+      // If sender is unverified onboarding@resend.dev, Resend requires to=[accountOwner]
+      const toRecipients = sender.includes('resend.dev')
+        ? [adminOwner]
+        : Array.from(new Set([recipient, adminOwner]));
+
       const payload: any = {
         from: sender,
-        to: [recipient],
+        to: toRecipients,
         subject: `New Free Trial Booking — Tuhfat Al-Ilm Academy: ${bookingRecord.name} (${bookingRecord.course})`,
         html: generateBookingEmailHtml({ ...bookingRecord, submitted_at: bookingRecord.created_at }),
         text: `New Free Trial Class Booking (${bookingRecord.id})\nStudent: ${bookingRecord.name}\nPhone: ${bookingRecord.phone}\nEmail: ${bookingRecord.email || 'N/A'}\nCourse: ${bookingRecord.course}\nPreferred Date/Time: ${bookingRecord.preferred_date || 'Flexible'} ${bookingRecord.preferred_time || ''}\nCountry: ${bookingRecord.country || 'N/A'}\nMessage: ${bookingRecord.message || 'None'}`
@@ -205,7 +211,7 @@ async function sendEmailNotification(env: Env, bookingRecord: any): Promise<{ se
 
       if (res.ok) {
         const json: any = await res.json();
-        console.log(`[Worker Email] Successfully dispatched email via Resend to ${recipient}, ID: ${json.id}`);
+        console.log(`[Worker Email] Successfully dispatched email via Resend to ${toRecipients.join(', ')}, ID: ${json.id}`);
         return { sent: true, status: 'sent', id: json.id };
       } else {
         const errText = await res.text();
@@ -222,12 +228,11 @@ async function sendEmailNotification(env: Env, bookingRecord: any): Promise<{ se
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Referer': 'https://tuhfatalilm.online',
-        'Origin': 'https://tuhfatalilm.online'
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         _subject: `New Free Trial Class Booking: ${bookingRecord.name} (${bookingRecord.course})`,
+        _cc: adminOwner,
         _template: 'table',
         _captcha: 'false',
         'Booking Reference ID': bookingRecord.id,
@@ -247,7 +252,7 @@ async function sendEmailNotification(env: Env, bookingRecord: any): Promise<{ se
 
     const fsJson: any = await fsRes.json().catch(() => ({}));
     if (fsRes.ok || fsJson?.success === 'true' || fsJson?.success === true) {
-      console.log(`[Worker Email] Delivered to tuhfatalilmacademy@gmail.com via FormSubmit gateway`);
+      console.log(`[Worker Email] Delivered to tuhfatalilmacademy@gmail.com and ${adminOwner} via FormSubmit gateway`);
       return { sent: true, status: 'sent', id: `fs-${bookingRecord.id}` };
     }
     return { sent: true, status: 'sent', id: `fs-${bookingRecord.id}` };

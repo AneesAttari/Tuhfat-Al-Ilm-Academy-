@@ -66,6 +66,16 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <li>
                 <button
                   type="button"
+                  onClick={() => onNavigate('explore-journey')}
+                  className="hover:text-[#FDE68A] transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D9B44A]" />
+                  <span>3D Learning Journey</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
                   onClick={() => onNavigate('teachers')}
                   className="hover:text-white transition-colors cursor-pointer"
                 >

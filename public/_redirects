@@ -25,5 +25,8 @@
 /faq/ /faq 301
 /contact/ /contact 301
 
+# Ensure API endpoints are never rewritten to index.html
+/api/* /api/:splat 200
+
 # Universal SPA fallback for all frontend routes
 /* /index.html 200

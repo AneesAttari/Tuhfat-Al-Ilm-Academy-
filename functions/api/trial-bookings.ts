@@ -328,9 +328,14 @@ export async function onRequestPost(context: {
         // Prepare reply_to only if student provided a valid email
         const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+        const adminOwner = 'aneesattari67@gmail.com';
+        const toRecipients = sender.includes('resend.dev')
+          ? [adminOwner]
+          : Array.from(new Set([recipient, adminOwner]));
+
         const emailPayload: any = {
           from: sender,
-          to: [recipient],
+          to: toRecipients,
           subject: `New Free Trial Booking — Tuhfat Al-Ilm Academy: ${name} (${course})`,
           html: generateBookingHtml({ ...bookingRecord, submitted_at: now }),
           text: generateBookingText({ ...bookingRecord, submitted_at: now })
@@ -354,7 +359,7 @@ export async function onRequestPost(context: {
           emailSent = true;
           emailProviderStatus = 'sent';
           emailId = resendJson.id || null;
-          console.log(`[Email Notification] Successfully dispatched trial booking email (${bookingId}) to ${recipient}`);
+          console.log(`[Email Notification] Successfully dispatched trial booking email (${bookingId}) to ${toRecipients.join(', ')}`);
         } else {
           const errBody = await resendResponse.text();
           emailProviderStatus = 'failed';
@@ -371,16 +376,16 @@ export async function onRequestPost(context: {
     // Direct FormSubmit Gateway Fallback (guarantees delivery if Resend is pending or encounters domain restrictions)
     if (!emailSent) {
       try {
+        const adminOwner = 'aneesattari67@gmail.com';
         const fsRes = await fetch('https://formsubmit.co/ajax/tuhfatalilmacademy@gmail.com', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Referer': 'https://tuhfatalilm.online',
-            'Origin': 'https://tuhfatalilm.online'
+            'Accept': 'application/json'
           },
           body: JSON.stringify({
             _subject: `New Free Trial Class Booking: ${name} (${course})`,
+            _cc: adminOwner,
             _template: 'table',
             _captcha: 'false',
             'Booking Reference ID': bookingId,
