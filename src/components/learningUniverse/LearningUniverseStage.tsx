@@ -177,11 +177,16 @@ export const LearningUniverseStage: React.FC<LearningUniverseStageProps> = ({
     const container = mountRef.current;
     if (!container) return;
 
-    // Check WebGL availability
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) {
-      if (onError) onError('WebGL is not supported on this browser or hardware.');
+    // Check WebGL availability safely
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        if (onError) onError('WebGL is not supported on this browser or hardware.');
+        return;
+      }
+    } catch {
+      if (onError) onError('WebGL is not supported on this device.');
       return;
     }
 
@@ -205,10 +210,16 @@ export const LearningUniverseStage: React.FC<LearningUniverseStageProps> = ({
     const isMobile = window.innerWidth < 768;
     const maxPixelRatio = isMobile || qualityLevel === 'low' ? 1.25 : Math.min(window.devicePixelRatio, 2.0);
 
-    const renderer = new THREE.WebGLRenderer({
-      powerPreference: 'high-performance',
-      antialias: qualityLevel !== 'low'
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        powerPreference: 'high-performance',
+        antialias: qualityLevel !== 'low'
+      });
+    } catch {
+      if (onError) onError('Unable to initialize WebGL 3D canvas.');
+      return;
+    }
     rendererRef.current = renderer;
     renderer.setSize(width, height);
     renderer.setPixelRatio(maxPixelRatio);

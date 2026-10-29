@@ -27,7 +27,7 @@ interface CoursesPageProps {
 export const CoursesPage: React.FC<CoursesPageProps> = ({ onNavigate }) => {
   const [courses, setCourses] = useState<Course[]>(DEFAULT_COURSES);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [loading, setLoading] = useState(false);
 
   // Fetch dynamically published courses from the database if available
@@ -61,7 +61,7 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onNavigate }) => {
   // Filter courses by search query and category
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
-      const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory;
+      const matchesCategory = selectedCategory.toLowerCase() === 'all' || course.category === selectedCategory;
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||

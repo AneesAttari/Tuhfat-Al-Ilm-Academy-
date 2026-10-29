@@ -244,7 +244,7 @@ export default function App() {
     const twitterDesc = document.querySelector('meta[name="twitter:description"]');
     if (twitterDesc) twitterDesc.setAttribute('content', description || '');
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
 
     if (!route.page.startsWith('admin-') && route.page !== 'admin-dashboard') {
       trackPageView(canonicalPath);

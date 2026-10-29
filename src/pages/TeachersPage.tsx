@@ -87,7 +87,7 @@ export const TeachersPage: React.FC<TeachersPageProps> = ({ onNavigate }) => {
       {/* Faculty Showcase Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {teachers.filter((t) => t.active !== false).map((t, idx) => (
-          <ScrollReveal key={idx} direction="fade-up" delay={idx * 100}>
+          <ScrollReveal key={t.id || idx} direction="fade-up" delay={idx * 100}>
             <Card3D tiltOptions={{ maxTilt: 5, scale: 1.015 }} className="h-full">
               <div className="h-full bg-white rounded-3xl border border-[#E2E8F0] hover:border-[#D9B44A]/40 p-7 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all">
                 <div className="space-y-4">

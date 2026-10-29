@@ -423,8 +423,8 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ course, onNa
       </section>
 
       {/* 7. Key Benefits */}
-      <ScrollReveal direction="fade-up">
-        <section className="bg-white rounded-3xl p-7 sm:p-10 border border-[#E2E8F0] shadow-sm space-y-6">
+      <section className="bg-white rounded-3xl p-7 sm:p-10 border border-[#E2E8F0] shadow-sm space-y-6">
+        <ScrollReveal direction="fade-up">
           <div>
             <span className="text-xs font-semibold text-[#064E3B] uppercase tracking-wider">
               Why Choose This Course
@@ -433,23 +433,23 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ course, onNa
               Key Course Benefits
             </h2>
           </div>
+        </ScrollReveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {course.benefits.map((benefit, idx) => (
-              <ScrollReveal key={idx} direction="fade-up" delay={idx * 60}>
-                <div className="h-full p-4 rounded-2xl bg-[#FAF9F5] border border-[#E5E2D9] flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#064E3B] text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
-                    ✓
-                  </div>
-                  <p className="text-sm text-[#334155] font-medium leading-relaxed">
-                    {benefit}
-                  </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {course.benefits.map((benefit, idx) => (
+            <ScrollReveal key={idx} direction="fade-up" delay={idx * 60}>
+              <div className="h-full p-4 rounded-2xl bg-[#FAF9F5] border border-[#E5E2D9] flex items-start gap-3">
+                <div className="w-6 h-6 rounded-full bg-[#064E3B] text-white flex items-center justify-center shrink-0 text-xs font-bold mt-0.5">
+                  ✓
                 </div>
-              </ScrollReveal>
-            ))}
-          </div>
-        </section>
-      </ScrollReveal>
+                <p className="text-sm text-[#334155] font-medium leading-relaxed">
+                  {benefit}
+                </p>
+              </div>
+            </ScrollReveal>
+          ))}
+        </div>
+      </section>
 
       {/* 8. Course Specific Frequently Asked Questions */}
       <section className="bg-white rounded-3xl p-7 sm:p-10 border border-[#E2E8F0] shadow-sm space-y-6">

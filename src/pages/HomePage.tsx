@@ -119,7 +119,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="space-y-16 lg:space-y-24 overflow-hidden">
+    <div className="space-y-16 lg:space-y-24 overflow-x-clip">
       {/* Published Announcement Notice (if any) */}
       {announcements.length > 0 && (
         <aside aria-label="Announcement" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
