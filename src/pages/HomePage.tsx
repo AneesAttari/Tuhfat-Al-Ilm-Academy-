@@ -157,97 +157,111 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Content Column */}
             <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-center lg:text-left">
-              {/* Grounded Academy Merits: Clean unboxed metadata with gold typographic separators (Zero-Pill Discipline) */}
-              <ScrollReveal direction="fade-up" delay={30}>
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3.5 gap-y-1.5 text-xs font-semibold text-[#064E3B]">
-                  <span>Structured Curriculum</span>
-                  <span aria-hidden="true" className="text-[#D9B44A]">·</span>
-                  <span>Qualified Huffaz &amp; Scholars</span>
-                  <span aria-hidden="true" className="text-[#D9B44A]">·</span>
-                  <span>1-on-1 Dedicated Classes</span>
+              {/* Sacred Arabic Invocation & Grounded Academy Merits */}
+              <ScrollReveal direction="fade-up" delay={20}>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-center lg:justify-start">
+                    <span className="font-arabic text-[#D9B44A] text-sm sm:text-base tracking-widest font-bold select-none drop-shadow-xs">
+                      بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-3 gap-y-1 text-xs font-semibold text-[#064E3B]">
+                    <span>Structured Curriculum</span>
+                    <span aria-hidden="true" className="text-[#D9B44A]">·</span>
+                    <span>Certified Huffaz &amp; Scholars</span>
+                    <span aria-hidden="true" className="text-[#D9B44A]">·</span>
+                    <span>1-on-1 Dedicated Classes</span>
+                  </div>
                 </div>
               </ScrollReveal>
 
-              {/* Exact Hero Heading: Confident 3-line cadence matching the academy's motto */}
-              <ScrollReveal direction="fade-up" delay={80}>
-                <h1 className="text-[1.85rem] sm:text-4xl lg:text-[3.25rem] font-bold tracking-tight text-[#0F172A] leading-[1.18] sm:leading-[1.15] [text-wrap:balance]">
+              {/* Exact Hero Heading: Confident, balanced cadence */}
+              <ScrollReveal direction="fade-up" delay={70}>
+                <h1 className="text-2xl sm:text-4xl lg:text-[3.25rem] font-bold tracking-tight text-[#0F172A] leading-[1.2] sm:leading-[1.15] [text-wrap:balance]">
                   <span className="block">Learn the Quran.</span>
                   <span className="block text-[#064E3B]">Understand Islam.</span>
-                  <span className="block">Grow with Knowledge.</span>
+                  <span className="block text-slate-800 text-[1.4rem] sm:text-3xl lg:text-4xl font-semibold">Grow with Authentic Knowledge.</span>
                 </h1>
               </ScrollReveal>
 
               {/* Concise, Internationally Understandable Introductory Copy */}
-              <ScrollReveal direction="fade-up" delay={140}>
+              <ScrollReveal direction="fade-up" delay={120}>
                 <p className="text-sm sm:text-base lg:text-lg text-[#334155] leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal">
-                  Tuhfat Al-Ilm Academy provides accessible online Quran and Islamic education for students around the world, with flexible learning designed for children and adults.
+                  Tuhfat Al-Ilm Academy provides accessible online Quran and Islamic education worldwide, with personalized 1-on-1 pacing for children, beginners, and adults.
                 </p>
               </ScrollReveal>
 
-              {/* Outcome-Oriented Action Buttons (WCAG 2.2 AA touch target size >= 48px) with 3D tactile press */}
-              <ScrollReveal direction="fade-up" delay={200}>
-                <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5">
-                  {/* Primary CTA: Book a Free Trial directly */}
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('contact')}
-                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 min-h-[48px] text-sm font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#022C22] border border-transparent hover:border-[#D9B44A]/40 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap"
-                  >
-                    <span>Book a Free Trial</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+              {/* Streamlined Mobile-First Action System (2 Primary CTAs + Discovery Row) */}
+              <ScrollReveal direction="fade-up" delay={180}>
+                <div className="pt-1 space-y-3">
+                  {/* Primary Action Row: Two Clear Outcomes */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5">
+                    {/* Primary CTA: Book a Free Trial directly */}
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('contact')}
+                      className="btn-tactile w-full lg:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 min-h-[48px] text-sm font-bold text-white bg-[#064E3B] hover:bg-[#043D2E] active:bg-[#022C22] border border-transparent hover:border-[#D9B44A]/40 rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap"
+                    >
+                      <span>Book a Free Trial</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
 
-                  {/* Secondary CTA: Explore Courses */}
-                  <button
-                    type="button"
-                    onClick={handleScrollToCourses}
-                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] text-sm font-semibold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] active:bg-[#A7F3D0] border border-[#A7F3D0] rounded-xl shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap cursor-pointer"
-                  >
-                    <BookOpen className="w-4 h-4 text-[#064E3B]" />
-                    <span>View Courses</span>
-                  </button>
+                    {/* Secondary CTA: Direct WhatsApp Admissions Link */}
+                    <a
+                      href="https://wa.me/923171503094?text=Assalamu%20Alaikum%2C%20I%20would%20like%20to%20inquire%20about%20online%20classes%20at%20Tuhfat%20Al-Ilm%20Academy."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackEvent('whatsapp_click', { page: '/' })}
+                      className="btn-tactile w-full lg:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] text-sm font-bold text-[#064E3B] bg-white hover:bg-[#F0FDF4] active:bg-[#DCFCE7] border border-[#CBD5E1] hover:border-[#86EFAC] rounded-xl shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap"
+                      aria-label="Contact Tuhfat Al-Ilm Academy on WhatsApp (opens in new tab)"
+                    >
+                      <MessageCircle className="w-4 h-4 text-[#059669]" />
+                      <span>WhatsApp Admissions</span>
+                    </a>
+                  </div>
 
-                  {/* 3D Interactive Learning Universe CTA */}
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('explore-journey')}
-                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 min-h-[48px] text-sm font-semibold text-[#064E3B] bg-white hover:bg-[#FAF9F5] active:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap cursor-pointer"
-                    title="Explore courses in our interactive 3D universe"
-                  >
-                    <Compass className="w-4 h-4 text-[#D9B44A]" />
-                    <span>3D Journey</span>
-                  </button>
+                  {/* Secondary Row: Syllabus Link & Featured 3D World Pill */}
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={handleScrollToCourses}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#064E3B] hover:text-[#043D2E] hover:underline py-1.5 px-2 cursor-pointer transition-colors"
+                    >
+                      <BookOpen className="w-3.5 h-3.5 text-[#064E3B]" />
+                      <span>View 9 Courses &amp; Syllabus &rarr;</span>
+                    </button>
 
-                  {/* Secondary CTA: Explicit WhatsApp link with verified number */}
-                  <a
-                    href="https://wa.me/923171503094?text=Assalamu%20Alaikum%2C%20I%20would%20like%20to%20inquire%20about%20online%20classes%20at%20Tuhfat%20Al-Ilm%20Academy."
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => trackEvent('whatsapp_click', { page: '/' })}
-                    className="btn-tactile w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-[48px] text-sm font-semibold text-[#064E3B] bg-white hover:bg-[#F0FDF4] active:bg-[#DCFCE7] border border-[#CBD5E1] hover:border-[#86EFAC] rounded-xl shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#064E3B] focus-visible:ring-offset-2 whitespace-nowrap"
-                    aria-label="Contact Tuhfat Al-Ilm Academy on WhatsApp (opens in new tab)"
-                  >
-                    <MessageCircle className="w-4 h-4 text-[#059669]" />
-                    <span>WhatsApp</span>
-                  </a>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('explore-journey')}
+                      className="btn-tactile inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#FEF3C7] to-[#FDE68A] hover:from-[#FDE68A] hover:to-[#FCD34D] border border-[#D9B44A]/60 shadow-xs text-xs font-semibold text-[#78350F] transition-all cursor-pointer"
+                      title="Explore our interactive 3D learning universe"
+                    >
+                      <Compass className="w-3.5 h-3.5 text-[#B45309]" />
+                      <span>Explore in 3D</span>
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.5 bg-[#064E3B] text-white rounded-md uppercase tracking-wider">
+                        Interactive
+                      </span>
+                    </button>
+                  </div>
 
-                {/* Grounded Institutional Trust Strip */}
-                <div className="pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-1.5 text-xs text-[#64748B]">
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
-                    <span>Flexible Schedules</span>
-                  </span>
-                  <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
-                    <span>1-on-1 Classes</span>
-                  </span>
-                  <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
-                  <span className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
-                    <span>Male &amp; Female Teachers</span>
-                  </span>
+                  {/* Grounded Institutional Trust Strip */}
+                  <div className="pt-1.5 flex flex-wrap items-center justify-center lg:justify-start gap-x-4 gap-y-1.5 text-xs text-[#64748B]">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
+                      <span>Flexible Schedules</span>
+                    </span>
+                    <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
+                      <span>1-on-1 Classes</span>
+                    </span>
+                    <span aria-hidden="true" className="text-[#CBD5E1]">·</span>
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
+                      <span>Male &amp; Female Teachers</span>
+                    </span>
+                  </div>
                 </div>
               </ScrollReveal>
             </div>

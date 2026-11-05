@@ -21,6 +21,7 @@ interface LearningUniverseStageProps {
   onSceneReady?: () => void;
   onError?: (err: string) => void;
   qualityLevel?: 'high' | 'balanced' | 'low';
+  resetTrigger?: number;
 }
 
 const DESTINATION_CONFIGS = [
@@ -48,7 +49,8 @@ export const LearningUniverseStage: React.FC<LearningUniverseStageProps> = ({
   onSelectDestination,
   onSceneReady,
   onError,
-  qualityLevel = 'high'
+  qualityLevel = 'high',
+  resetTrigger = 0
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [hoveredDestId, setHoveredDestId] = useState<string | null>(null);
@@ -134,6 +136,14 @@ export const LearningUniverseStage: React.FC<LearningUniverseStageProps> = ({
       isTransitioningCam.current = true;
     }
   }, [selectedDestinationId]);
+
+  // Smooth Camera Reset (glide back to panoramic overview without destroying WebGL)
+  useEffect(() => {
+    if (!cameraRef.current || !controlsRef.current || resetTrigger === 0) return;
+    targetCamPos.current.set(0, 22, 38);
+    targetLookAt.current.set(0, 2.5, 0);
+    isTransitioningCam.current = true;
+  }, [resetTrigger]);
 
   // Handle Day / Evening lighting transitions
   useEffect(() => {
@@ -529,37 +539,27 @@ export const LearningUniverseStage: React.FC<LearningUniverseStageProps> = ({
 
     window.addEventListener('resize', handleResize);
 
-    // 15. Raycasting for Mouse Hover and Clicks
+    // 15. Unified Pointer & Touch Tap Detection on the Canvas
+    let pointerDownPos = { x: 0, y: 0 };
+    let pointerDownTime = 0;
     let pointerMoveTimer: number | null = null;
-    const handlePointerMove = (e: MouseEvent) => {
-      if (pointerMoveTimer) return;
-      pointerMoveTimer = window.setTimeout(() => {
-        pointerMoveTimer = null;
-        if (!container || !camera) return;
-        const rect = container.getBoundingClientRect();
-        _mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        _mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-        _raycaster.setFromCamera(_mouse, camera);
-        const hitMeshes = hitboxesRef.current.map((h) => h.mesh);
-        const intersects = _raycaster.intersectObjects(hitMeshes, false);
-
-        if (intersects.length > 0) {
-          const hit = hitboxesRef.current.find((h) => h.mesh === intersects[0].object);
-          if (hit) {
-            setHoveredDestId(hit.dest.id);
-            container.style.cursor = 'pointer';
-            return;
-          }
-        }
-        setHoveredDestId(null);
-        container.style.cursor = 'default';
-      }, 35);
+    const handlePointerDown = (e: PointerEvent) => {
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+      pointerDownTime = performance.now();
     };
 
-    const handleClick = (e: MouseEvent) => {
-      if (!container || !camera) return;
-      const rect = container.getBoundingClientRect();
+    const handlePointerUp = (e: PointerEvent) => {
+      if (!camera || !renderer.domElement) return;
+      const dx = e.clientX - pointerDownPos.x;
+      const dy = e.clientY - pointerDownPos.y;
+      const distance = Math.hypot(dx, dy);
+      const elapsed = performance.now() - pointerDownTime;
+
+      // If user was dragging to orbit/rotate (> 8px movement or > 650ms long-press), ignore as a camera gesture
+      if (distance > 8 || elapsed > 650) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
       _mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       _mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
@@ -575,8 +575,39 @@ export const LearningUniverseStage: React.FC<LearningUniverseStageProps> = ({
       }
     };
 
-    container.addEventListener('mousemove', handlePointerMove);
-    container.addEventListener('click', handleClick);
+    const handlePointerMove = (e: PointerEvent) => {
+      // Skip hover raycasting on touch devices to conserve battery & prevent jitters
+      if (e.pointerType === 'touch') return;
+
+      if (pointerMoveTimer) return;
+      pointerMoveTimer = window.setTimeout(() => {
+        pointerMoveTimer = null;
+        if (!renderer.domElement || !camera) return;
+        const rect = renderer.domElement.getBoundingClientRect();
+        _mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        _mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        _raycaster.setFromCamera(_mouse, camera);
+        const hitMeshes = hitboxesRef.current.map((h) => h.mesh);
+        const intersects = _raycaster.intersectObjects(hitMeshes, false);
+
+        if (intersects.length > 0) {
+          const hit = hitboxesRef.current.find((h) => h.mesh === intersects[0].object);
+          if (hit) {
+            setHoveredDestId(hit.dest.id);
+            renderer.domElement.style.cursor = 'pointer';
+            return;
+          }
+        }
+        setHoveredDestId(null);
+        renderer.domElement.style.cursor = 'default';
+      }, 40);
+    };
+
+    const canvasElem = renderer.domElement;
+    canvasElem.addEventListener('pointerdown', handlePointerDown);
+    canvasElem.addEventListener('pointerup', handlePointerUp);
+    canvasElem.addEventListener('pointermove', handlePointerMove);
 
     // 16. WebGL Context Loss Safety
     const handleContextLost = (event: Event) => {
@@ -588,17 +619,18 @@ export const LearningUniverseStage: React.FC<LearningUniverseStageProps> = ({
       handleResize();
     };
 
-    renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
-    renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored);
+    canvasElem.addEventListener('webglcontextlost', handleContextLost);
+    canvasElem.addEventListener('webglcontextrestored', handleContextRestored);
 
     // 17. Cleanup on Unmount
     return () => {
       if (animFrameId.current) cancelAnimationFrame(animFrameId.current);
       window.removeEventListener('resize', handleResize);
-      container.removeEventListener('mousemove', handlePointerMove);
-      container.removeEventListener('click', handleClick);
-      renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
-      renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored);
+      canvasElem.removeEventListener('pointerdown', handlePointerDown);
+      canvasElem.removeEventListener('pointerup', handlePointerUp);
+      canvasElem.removeEventListener('pointermove', handlePointerMove);
+      canvasElem.removeEventListener('webglcontextlost', handleContextLost);
+      canvasElem.removeEventListener('webglcontextrestored', handleContextRestored);
 
       controls.dispose();
 

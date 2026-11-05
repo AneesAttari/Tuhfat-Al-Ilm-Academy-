@@ -36,7 +36,7 @@ export const ExploreJourneyPage: React.FC<ExploreJourneyPageProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isSceneLoading, setIsSceneLoading] = useState(true);
   const [webglError, setWebglError] = useState<string | null>(null);
-  const [resetKey, setResetKey] = useState(0);
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   // Auto-detect initial quality based on hardware / mobile screen width
   const [qualityLevel, setQualityLevel] = useState<'high' | 'balanced' | 'low'>(() => {
@@ -94,10 +94,17 @@ export const ExploreJourneyPage: React.FC<ExploreJourneyPageProps> = ({
 
   const handleToggleFullscreen = useCallback(() => {
     if (!containerRef.current) return;
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch(() => {});
+    if (!document.fullscreenElement && containerRef.current.requestFullscreen) {
+      containerRef.current.requestFullscreen().catch(() => {
+        // Fallback: full-window mode inside iframe
+        setIsFullscreen((prev) => !prev);
+      });
+    } else if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {
+        setIsFullscreen(false);
+      });
     } else {
-      document.exitFullscreen().catch(() => {});
+      setIsFullscreen((prev) => !prev);
     }
   }, []);
 
@@ -119,7 +126,7 @@ export const ExploreJourneyPage: React.FC<ExploreJourneyPageProps> = ({
 
   const handleResetView = useCallback(() => {
     setSelectedDestination(null);
-    setResetKey((k) => k + 1);
+    setResetTrigger((t) => t + 1);
   }, []);
 
   const handleSelectDestination = useCallback((dest: LearningDestination | null) => {
@@ -136,7 +143,7 @@ export const ExploreJourneyPage: React.FC<ExploreJourneyPageProps> = ({
     <div
       ref={containerRef}
       className={`relative w-full ${
-        isFullscreen ? 'h-screen fixed inset-0 z-50 bg-black' : 'h-[82vh] min-h-[580px] max-h-[920px]'
+        isFullscreen ? 'h-screen fixed inset-0 z-50 bg-black' : 'h-[82vh] min-h-[560px] max-h-[920px]'
       } overflow-hidden bg-[#FAF9F5] select-none`}
     >
       {/* Fallback View if WebGL fails */}
@@ -146,13 +153,13 @@ export const ExploreJourneyPage: React.FC<ExploreJourneyPageProps> = ({
         <>
           {/* Main 3D Canvas Stage */}
           <LearningUniverseStage
-            key={resetKey}
             timeOfDay={timeOfDay}
             selectedDestinationId={selectedDestination?.id || null}
             onSelectDestination={handleSelectDestination}
             onSceneReady={() => setIsSceneLoading(false)}
             onError={(err) => setWebglError(err)}
             qualityLevel={qualityLevel}
+            resetTrigger={resetTrigger}
           />
 
           {/* Interactive UI Overlay & Collapsible Dock */}

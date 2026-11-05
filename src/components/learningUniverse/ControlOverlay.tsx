@@ -135,22 +135,20 @@ export const ControlOverlay: React.FC<ControlOverlayProps> = ({
             <span className="text-[#064E3B] capitalize">{qualityLevel}</span>
           </button>
 
-          {/* Fullscreen Button */}
-          {typeof document !== 'undefined' && document.fullscreenEnabled && (
-            <button
-              type="button"
-              onClick={onToggleFullscreen}
-              className="p-1.5 sm:px-2.5 py-1.5 rounded-xl bg-white/90 hover:bg-white text-slate-800 border border-slate-200 shadow-sm text-xs font-medium flex items-center transition-all cursor-pointer"
-              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-              aria-label="Toggle Fullscreen"
-            >
-              {isFullscreen ? (
-                <Minimize2 className="w-3.5 h-3.5 text-slate-700" />
-              ) : (
-                <Maximize2 className="w-3.5 h-3.5 text-slate-700" />
-              )}
-            </button>
-          )}
+          {/* Fullscreen / Full-Window Mode Toggle */}
+          <button
+            type="button"
+            onClick={onToggleFullscreen}
+            className="p-1.5 sm:px-2.5 py-1.5 rounded-xl bg-white/90 hover:bg-white text-slate-800 border border-slate-200 shadow-sm text-xs font-medium flex items-center transition-all cursor-pointer"
+            title={isFullscreen ? 'Exit Full Screen' : 'Enter Full Screen'}
+            aria-label="Toggle Full Screen"
+          >
+            {isFullscreen ? (
+              <Minimize2 className="w-3.5 h-3.5 text-slate-700" />
+            ) : (
+              <Maximize2 className="w-3.5 h-3.5 text-slate-700" />
+            )}
+          </button>
         </div>
       </header>
 
@@ -193,17 +191,17 @@ export const ControlOverlay: React.FC<ControlOverlayProps> = ({
         >
           {/* A. If a destination is SELECTED: Render Elevated Course Details Plaque */}
           {selectedDestination ? (
-            <div className="w-full rounded-2xl bg-white/95 backdrop-blur-md p-4 sm:p-5 border border-[#D9B44A]/40 shadow-2xl text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-200">
-              <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+            <div className="w-full rounded-2xl bg-white/95 backdrop-blur-md p-3.5 sm:p-5 border border-[#D9B44A]/40 shadow-2xl text-slate-900 animate-in fade-in slide-in-from-bottom-3 duration-200">
+              <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
                 <div className="space-y-0.5">
-                  <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                     <span className="text-[#064E3B] font-semibold">{selectedDestination.category}</span>
                     <span aria-hidden="true">·</span>
                     <span className="text-amber-700 font-arabic font-bold text-sm">
                       {selectedDestination.arabicTitle}
                     </span>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-[#064E3B] tracking-tight">
+                  <h3 className="text-base sm:text-xl font-bold text-[#064E3B] tracking-tight">
                     {selectedDestination.title}
                   </h3>
                 </div>
@@ -220,31 +218,22 @@ export const ControlOverlay: React.FC<ControlOverlayProps> = ({
               </div>
 
               {/* Course Description */}
-              <p className="mt-2 text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed">
+              <p className="mt-1.5 text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed">
                 {course?.detailedDesc || selectedDestination.tagline}
               </p>
 
-              {/* Course Authentic Specs (from real course data, Zero hallucination) */}
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-600">
+              {/* Course Authentic Specs */}
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-slate-600">
                 {course?.duration && (
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <span className="text-slate-400">Duration:</span>
                     <strong className="text-slate-800">{course.duration}</strong>
                   </div>
                 )}
-                {course?.instructor && (
-                  <>
-                    <span className="text-slate-300" aria-hidden="true">·</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-slate-400">Faculty:</span>
-                      <strong className="text-slate-800">{course.instructor}</strong>
-                    </div>
-                  </>
-                )}
                 {course?.level && (
                   <>
                     <span className="text-slate-300" aria-hidden="true">·</span>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       <span className="text-slate-400">Level:</span>
                       <strong className="text-slate-800">{course.level}</strong>
                     </div>
@@ -253,36 +242,36 @@ export const ControlOverlay: React.FC<ControlOverlayProps> = ({
                 <span className="text-slate-300" aria-hidden="true">·</span>
                 <div className="flex items-center gap-1 text-emerald-700 font-semibold">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Personalized 1-on-1</span>
+                  <span>1-on-1 Classes</span>
                 </div>
               </div>
 
               {/* Actions: View Course Page & Book Free Trial */}
-              <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+              <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => onSelectDestination(null)}
-                  className="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-center"
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-center"
                 >
-                  &larr; View Garden Courtyard
+                  &larr; Overview
                 </button>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => onNavigate('course-detail', selectedDestination.courseSlug)}
-                    className="flex-1 sm:flex-none px-4 py-2 text-xs font-semibold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    className="px-3 py-1.5 text-xs font-semibold text-[#064E3B] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <span>Course Syllabus</span>
+                    <span>Syllabus</span>
                     <BookOpen className="w-3.5 h-3.5" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onNavigate('contact', selectedDestination.title)}
-                    className="flex-1 sm:flex-none px-4 py-2 text-xs font-semibold text-white bg-[#064E3B] hover:bg-[#043D2E] rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#064E3B] hover:bg-[#043D2E] rounded-xl shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <span>Book Free Trial</span>
+                    <span>Book Trial</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

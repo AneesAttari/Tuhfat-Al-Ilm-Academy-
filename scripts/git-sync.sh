@@ -12,12 +12,14 @@ GITHUB_TOKEN="${GITHUB_TOKEN:-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}"
 
 echo "=== Tuhfat Al-Ilm Git Sync Engine ==="
 
+git config --global --add safe.directory /app/applet 2>/dev/null || true
+
 # 1. Ensure git repository is initialized
 if [ ! -d ".git" ]; then
   echo "Initializing git repository..."
   git init -b main
-  git remote add origin "$REPO_URL" 2>/dev/null || git remote set-url origin "$REPO_URL"
 fi
+git remote add origin "$REPO_URL" 2>/dev/null || git remote set-url origin "$REPO_URL"
 
 # 2. Configure user identity
 git config user.name "$GITHUB_USER"
@@ -35,11 +37,16 @@ git fetch origin main master Domain || true
 # 5. Ensure tracking branch is main
 git branch -M main
 
-# If HEAD has no commits yet, stage and make initial commit
+# If HEAD has no commits yet but origin/main exists, align with origin/main softly
 if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
-  echo "Setting up initial commit on main..."
-  git add -A
-  git commit -m "feat: initial commit from project files" || true
+  if git rev-parse --verify origin/main >/dev/null 2>&1; then
+    echo "Aligning with origin/main..."
+    git reset --soft origin/main || true
+  else
+    echo "Setting up initial commit on main..."
+    git add -A
+    git commit -m "feat: initial commit from project files" || true
+  fi
 fi
 
 # 6. Stage all changes
