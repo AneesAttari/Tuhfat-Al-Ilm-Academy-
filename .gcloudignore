@@ -1,0 +1,13 @@
+.git/
+node_modules/
+dist/
+server.js
+data/*.db
+data/*.db-shm
+data/*.db-wal
+*.log
+.DS_Store
+.idea/
+.vscode/
+bun.lock
+bun.lockb

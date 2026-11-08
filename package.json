@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=esm --target=node18 --outfile=server.js --external:vite --external:express --external:nodemailer --external:dotenv --external:mysql2 && node -e \"const fs=require('fs'); const cfg=JSON.stringify({name:'tuhfat-al-ilm-academy',main:'worker.ts',compatibility_date:'2026-10-09',assets:{directory:'./dist',not_found_handling:'single-page-application'}},null,2); fs.writeFileSync('wrangler.jsonc', cfg); fs.writeFileSync('wrangler.json', cfg); fs.writeFileSync('wrangler.toml', 'name = \\\"tuhfat-al-ilm-academy\\\"\\nmain = \\\"worker.ts\\\"\\ncompatibility_date = \\\"2026-10-09\\\"\\n\\n[assets]\\ndirectory = \\\"./dist\\\"\\nnot_found_handling = \\\"single-page-application\\\"\\n');\"",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=esm --target=node18 --outfile=server.js --external:vite --external:express --external:nodemailer --external:dotenv --external:mysql2",
     "start": "node server.js",
     "start:ts": "tsx server.ts",
     "preview": "vite preview",
@@ -18,14 +18,12 @@
     "git:push": "bash scripts/git-sync.sh"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "firebase": "^13.0.0",
     "lucide-react": "^0.546.0",
-    "motion": "^12.23.24",
     "mysql2": "^3.24.5",
     "nodemailer": "^10.0.15",
     "react": "^19.0.1",
@@ -41,11 +39,9 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.186.0",
-    "autoprefixer": "^10.4.21",
     "esbuild": "^0.28.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
-    "typescript": "^7.0.2",
-    "wrangler": "^4.149.0"
+    "typescript": "^7.0.2"
   }
 }
