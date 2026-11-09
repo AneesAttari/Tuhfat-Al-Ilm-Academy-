@@ -241,12 +241,18 @@ export async function onRequestPost(context: {
     let emailSent = false;
     let emailStatus = 'pending_configuration';
 
+    const adminTargets = ['aneesattari67@gmail.com', 'tuhfatalilmacademy@gmail.com'];
+
     if (resendApiKey) {
       try {
         const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const toRecipients = sender.includes('resend.dev')
+          ? ['aneesattari67@gmail.com']
+          : adminTargets;
+
         const payload: any = {
           from: sender,
-          to: [recipient],
+          to: toRecipients,
           subject: `New Inquiry — Tuhfat Al-Ilm Academy: ${name} (${course})`,
           html: generateInquiryHtml({ ...record, submitted_at: now }),
           text: `New inquiry from ${name} (${phone}, ${email}) regarding ${course}. Message: ${message}`
@@ -270,6 +276,46 @@ export async function onRequestPost(context: {
         }
       } catch {
         emailStatus = 'failed';
+      }
+    }
+
+    // Direct FormSubmit fallback if Resend is pending or fails
+    if (!emailSent) {
+      try {
+        const fsPayload = {
+          _subject: `New Inquiry — Tuhfat Al-Ilm Academy: ${name} (${course})`,
+          _template: 'table',
+          _captcha: 'false',
+          'Inquiry ID': bookingId,
+          'Name': name,
+          'Phone / WhatsApp': phone,
+          'Email': email || 'Not provided',
+          'Course': course,
+          'Message': message || 'None',
+          'Submitted At': now
+        };
+
+        const results = await Promise.allSettled(
+          adminTargets.map((target) =>
+            fetch(`https://formsubmit.co/ajax/${encodeURIComponent(target)}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Referer': 'https://tuhfatalilm.online',
+                'Origin': 'https://tuhfatalilm.online'
+              },
+              body: JSON.stringify(fsPayload)
+            })
+          )
+        );
+
+        if (results.some((r) => r.status === 'fulfilled' && r.value.ok)) {
+          emailSent = true;
+          emailStatus = 'sent';
+        }
+      } catch (fsErr) {
+        console.warn('Inquiry FormSubmit fallback error:', fsErr);
       }
     }
 

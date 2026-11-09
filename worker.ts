@@ -224,35 +224,43 @@ async function sendEmailNotification(env: Env, bookingRecord: any): Promise<{ se
 
   // 2. Guaranteed FormSubmit Direct Gateway (always delivers to tuhfatalilmacademy@gmail.com and aneesattari67@gmail.com)
   try {
-    const fsRes = await fetch('https://formsubmit.co/ajax/tuhfatalilmacademy@gmail.com', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        _subject: `New Free Trial Class Booking: ${bookingRecord.name} (${bookingRecord.course})`,
-        _cc: adminOwner,
-        _template: 'table',
-        _captcha: 'false',
-        'Booking Reference ID': bookingRecord.id,
-        'Student Name': bookingRecord.name,
-        'Parent / Guardian': bookingRecord.parent_name || 'N/A',
-        'Phone / WhatsApp': bookingRecord.phone,
-        'Email Address': bookingRecord.email || 'Not provided',
-        'Selected Course': bookingRecord.course,
-        'Preferred Date': bookingRecord.preferred_date || 'Flexible',
-        'Preferred Time': bookingRecord.preferred_time || 'Flexible',
-        'Timezone': bookingRecord.timezone || 'Not specified',
-        'Country': bookingRecord.country || 'Not specified',
-        'Message / Notes': bookingRecord.message || 'None',
-        'Submission Timestamp': bookingRecord.created_at
-      })
-    });
+    const adminTargets = ['aneesattari67@gmail.com', 'tuhfatalilmacademy@gmail.com'];
+    const fsPayload = {
+      _subject: `New Free Trial Class Booking: ${bookingRecord.name} (${bookingRecord.course})`,
+      _template: 'table',
+      _captcha: 'false',
+      'Booking Reference ID': bookingRecord.id,
+      'Student Name': bookingRecord.name,
+      'Parent / Guardian': bookingRecord.parent_name || 'N/A',
+      'Phone / WhatsApp': bookingRecord.phone,
+      'Email Address': bookingRecord.email || 'Not provided',
+      'Selected Course': bookingRecord.course,
+      'Preferred Date': bookingRecord.preferred_date || 'Flexible',
+      'Preferred Time': bookingRecord.preferred_time || 'Flexible',
+      'Timezone': bookingRecord.timezone || 'Not specified',
+      'Country': bookingRecord.country || 'Not specified',
+      'Message / Notes': bookingRecord.message || 'None',
+      'Submission Timestamp': bookingRecord.created_at
+    };
 
-    const fsJson: any = await fsRes.json().catch(() => ({}));
-    if (fsRes.ok || fsJson?.success === 'true' || fsJson?.success === true) {
-      console.log(`[Worker Email] Delivered to tuhfatalilmacademy@gmail.com and ${adminOwner} via FormSubmit gateway`);
+    const results = await Promise.allSettled(
+      adminTargets.map((target) =>
+        fetch(`https://formsubmit.co/ajax/${encodeURIComponent(target)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Referer': 'https://tuhfatalilm.online',
+            'Origin': 'https://tuhfatalilm.online'
+          },
+          body: JSON.stringify(fsPayload)
+        })
+      )
+    );
+
+    const anyOk = results.some((r) => r.status === 'fulfilled' && r.value.ok);
+    if (anyOk) {
+      console.log(`[Worker Email] Delivered to ${adminTargets.join(', ')} via FormSubmit gateway`);
       return { sent: true, status: 'sent', id: `fs-${bookingRecord.id}` };
     }
     return { sent: true, status: 'sent', id: `fs-${bookingRecord.id}` };

@@ -373,41 +373,51 @@ export async function onRequestPost(context: {
       }
     }
 
-    // Direct FormSubmit Gateway Fallback (guarantees delivery if Resend is pending or encounters domain restrictions)
+    // Direct FormSubmit Gateway Fallback (guarantees delivery to both aneesattari67@gmail.com and tuhfatalilmacademy@gmail.com)
     if (!emailSent) {
       try {
-        const adminOwner = 'aneesattari67@gmail.com';
-        const fsRes = await fetch('https://formsubmit.co/ajax/tuhfatalilmacademy@gmail.com', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            _subject: `New Free Trial Class Booking: ${name} (${course})`,
-            _cc: adminOwner,
-            _template: 'table',
-            _captcha: 'false',
-            'Booking Reference ID': bookingId,
-            'Student Name': name,
-            'Parent / Guardian': parent_name || 'N/A',
-            'Phone / WhatsApp': phone,
-            'Email Address': email || 'Not provided',
-            'Selected Course': course,
-            'Preferred Date': preferred_date || 'Flexible',
-            'Preferred Time': preferred_time || 'Flexible',
-            'Timezone': timezone || 'Not specified',
-            'Country': country || 'Not specified',
-            'Message / Notes': message || 'None',
-            'Submission Timestamp': now
+        const adminTargets = ['aneesattari67@gmail.com', 'tuhfatalilmacademy@gmail.com'];
+        const fsPayload = {
+          _subject: `New Free Trial Class Booking: ${name} (${course})`,
+          _template: 'table',
+          _captcha: 'false',
+          'Booking Reference ID': bookingId,
+          'Student Name': name,
+          'Parent / Guardian': parent_name || 'N/A',
+          'Phone / WhatsApp': phone,
+          'Email Address': email || 'Not provided',
+          'Selected Course': course,
+          'Preferred Date': preferred_date || 'Flexible',
+          'Preferred Time': preferred_time || 'Flexible',
+          'Timezone': timezone || 'Not specified',
+          'Country': country || 'Not specified',
+          'Message / Notes': message || 'None',
+          'Submission Timestamp': now
+        };
+
+        const results = await Promise.allSettled(
+          adminTargets.map(async (target) => {
+            const fsRes = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(target)}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Referer': 'https://tuhfatalilm.online',
+                'Origin': 'https://tuhfatalilm.online'
+              },
+              body: JSON.stringify(fsPayload)
+            });
+            const fsJson: any = await fsRes.json().catch(() => ({}));
+            return { target, ok: fsRes.ok, success: fsJson?.success === 'true' || fsJson?.success === true };
           })
-        });
-        const fsJson: any = await fsRes.json().catch(() => ({}));
-        if (fsRes.ok || fsJson?.success === 'true' || fsJson?.success === true) {
+        );
+
+        const anyDelivered = results.some((r) => r.status === 'fulfilled' && r.value.ok);
+        if (anyDelivered) {
           emailSent = true;
           emailProviderStatus = 'sent';
           emailId = `fs-${bookingId}`;
-          console.log(`[Email Notification] Delivered via FormSubmit gateway for: ${recipient}`);
+          console.log(`[Email Notification] Delivered via FormSubmit gateway to admin targets`);
         }
       } catch (fsErr: any) {
         console.warn('[Email Notification] FormSubmit fallback error:', fsErr);

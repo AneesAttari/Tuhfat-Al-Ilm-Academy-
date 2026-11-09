@@ -141,8 +141,10 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
           'Origin': 'https://tuhfatalilm.online'
         },
         body: JSON.stringify({
-          _subject: `[Test Notification] Tuhfat Al-Ilm Academy Email Verification`,
-          _cc: 'aneesattari67@gmail.com',
+          _subject: `[Test Notification] Tuhfat Al-Ilm Academy Email Verification (${targetEmail})`,
+          _template: 'table',
+          _captcha: 'false',
+          Recipient: targetEmail,
           Message: `Assalamu Alaikum. This test email confirms that admissions notifications from Tuhfat Al-Ilm Academy are successfully arriving in your Gmail inbox (${targetEmail}).`,
           Timestamp: now
         })

@@ -651,6 +651,18 @@ async function seedTeachersTable() {
   }
 }
 
+// Helper to get Resend API Key from environment or site_settings
+async function getEffectiveResendApiKey(): Promise<string> {
+  const envKey = (process.env.RESEND_API_KEY || '').trim();
+  if (envKey) return envKey;
+  try {
+    const row = await dbQueryOne("SELECT value FROM site_settings WHERE key_name = 'resend_api_key'");
+    return (row?.value || '').trim();
+  } catch {
+    return '';
+  }
+}
+
 // Email Notification Dispatcher
 async function dispatchTrialBookingNotification(booking: {
   id: string;
@@ -701,15 +713,17 @@ You can manage this student and assign an instructor via the Admin Portal at /ad
   const now = new Date().toISOString();
   let status = 'logged';
   let errorMsg: string | null = null;
+  let resendSent = false;
 
-  if (process.env.RESEND_API_KEY) {
+  const resendApiKey = await getEffectiveResendApiKey();
+
+  if (resendApiKey) {
     try {
-      const primaryRecipient = process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com';
-      const adminOwner = 'aneesattari67@gmail.com';
       const sender = process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>';
-      const toRecipients = sender.includes('resend.dev')
-        ? [adminOwner]
-        : Array.from(new Set([primaryRecipient, adminOwner]));
+      const isDevDomain = sender.includes('resend.dev');
+      // If using onboarding@resend.dev on Resend free tier (300 free emails), Resend ONLY accepts delivery to the account registration email (aneesattari67@gmail.com).
+      // If a custom verified domain is used, delivery goes to both aneesattari67@gmail.com and tuhfatalilmacademy@gmail.com.
+      const toRecipients = isDevDomain ? ['aneesattari67@gmail.com'] : recipients;
 
       const resendPayload: any = {
         from: sender,
@@ -725,7 +739,7 @@ You can manage this student and assign an instructor via the Admin Portal at /ad
       const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Authorization': `Bearer ${resendApiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(resendPayload)
@@ -733,19 +747,22 @@ You can manage this student and assign an instructor via the Admin Portal at /ad
 
       if (resendRes.ok) {
         status = 'sent';
-        console.log(`[Email] Resend notification sent successfully to ${resendPayload.to.join(', ')}`);
+        resendSent = true;
+        console.log(`[Email] Resend notification sent successfully to ${toRecipients.join(', ')}`);
       } else {
         const errText = await resendRes.text();
-        status = 'failed';
         errorMsg = `Resend error (${resendRes.status}): ${errText}`;
         console.warn(`[Email] Resend API error:`, errorMsg);
       }
     } catch (err: any) {
-      status = 'failed';
       errorMsg = err.message || String(err);
       console.warn(`[Email] Resend network dispatch failed:`, errorMsg);
     }
-  } else if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  }
+
+  // If Resend is not configured or did not succeed, attempt SMTP or guaranteed FormSubmit fallback
+  if (!resendSent) {
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     try {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -834,6 +851,7 @@ ${bodyText}`);
       console.warn('[Server Background Email Note]:', e?.message);
     }
   }
+}
 
   try {
     for (const recipient of recipients) {
@@ -2185,16 +2203,18 @@ async function startServer() {
     };
 
     // 1. Resend
-    if (process.env.RESEND_API_KEY) {
+    const resendApiKey = await getEffectiveResendApiKey();
+    if (resendApiKey) {
       try {
+        const sender = process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>';
         const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+            'Authorization': `Bearer ${resendApiKey}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            from: process.env.EMAIL_FROM || 'Tuhfat Al-Ilm Academy <onboarding@resend.dev>',
+            from: sender,
             to: [targetEmail],
             subject: `[Live Test] Tuhfat Al-Ilm Academy Email Verification`,
             text: `Assalamu Alaikum. This test email confirms that your Tuhfat Al-Ilm Academy email system is operating and delivering to ${targetEmail}. Sent at: ${now}`
@@ -2208,7 +2228,7 @@ async function startServer() {
         results.resend = { error: err.message };
       }
     } else {
-      results.resend = { status: 'not_configured', message: 'RESEND_API_KEY is not set in environment.' };
+      results.resend = { status: 'not_configured', message: 'RESEND_API_KEY is not set in environment or site_settings.' };
     }
 
     // 2. SMTP
