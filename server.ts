@@ -777,36 +777,58 @@ Subject: ${subject}
 ${bodyText}`);
 
     try {
-      const fsRes = await fetch('https://formsubmit.co/ajax/tuhfatalilmacademy@gmail.com', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Referer': 'https://tuhfatalilm.online',
-          'Origin': 'https://tuhfatalilm.online'
-        },
-        body: JSON.stringify({
-          _subject: subject,
-          _cc: 'aneesattari67@gmail.com',
-          _template: 'table',
-          _captcha: 'false',
-          'Student Name': booking.name,
-          'Parent / Guardian': booking.parent_name || 'N/A',
-          'Phone / WhatsApp': booking.phone,
-          'Email Address': booking.email || 'Not provided',
-          'Selected Course': booking.course,
-          'Country / Location': booking.country || 'Not specified',
-          'Preferred Date': booking.preferred_date || 'Flexible',
-          'Preferred Time': booking.preferred_time || 'Flexible',
-          'Timezone': booking.timezone || 'Not specified',
-          'Message / Notes': booking.message || 'None',
-          'Booking Reference ID': booking.id,
-          'Submitted Date': now
+      const fsPayload = {
+        _subject: subject,
+        _template: 'table',
+        _captcha: 'false',
+        'Student Name': booking.name,
+        'Parent / Guardian': booking.parent_name || 'N/A',
+        'Phone / WhatsApp': booking.phone,
+        'Email Address': booking.email || 'Not provided',
+        'Selected Course': booking.course,
+        'Country / Location': booking.country || 'Not specified',
+        'Preferred Date': booking.preferred_date || 'Flexible',
+        'Preferred Time': booking.preferred_time || 'Flexible',
+        'Timezone': booking.timezone || 'Not specified',
+        'Message / Notes': booking.message || 'None',
+        'Booking Reference ID': booking.id,
+        'Submitted Date': now
+      };
+
+      // Dispatch dedicated primary HTTP requests to both aneesattari67@gmail.com and tuhfatalilmacademy@gmail.com
+      const dispatchResults = await Promise.allSettled(
+        recipients.map(async (targetEmail) => {
+          const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetEmail)}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Referer': 'https://tuhfatalilm.online',
+              'Origin': 'https://tuhfatalilm.online'
+            },
+            body: JSON.stringify(fsPayload)
+          });
+          const json: any = await res.json().catch(() => null);
+          return { email: targetEmail, ok: res.ok, json };
         })
-      });
-      const fsJson: any = await fsRes.json();
-      if (fsJson && (fsJson.success === 'true' || fsJson.success === true)) {
+      );
+
+      const anyOk = dispatchResults.some(
+        (r) => r.status === 'fulfilled' && (r.value.json?.success === 'true' || r.value.json?.success === true)
+      );
+
+      if (anyOk) {
         status = 'sent';
+      } else {
+        const errorDetails = dispatchResults
+          .map((r) => {
+            if (r.status === 'fulfilled') {
+              return `${r.value.email}: ${r.value.json?.message || (r.value.ok ? 'Sent' : 'Failed')}`;
+            }
+            return `Network error: ${r.reason}`;
+          })
+          .join('; ');
+        errorMsg = errorDetails;
       }
     } catch (e: any) {
       console.warn('[Server Background Email Note]:', e?.message);
@@ -814,11 +836,12 @@ ${bodyText}`);
   }
 
   try {
-    const primaryRecipient = process.env.EMAIL_TO || 'tuhfatalilmacademy@gmail.com';
-    await dbExecute(`
-      INSERT INTO email_notifications (id, inquiry_id, recipient, subject, body, status, error_message, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `, [crypto.randomUUID(), booking.id, primaryRecipient, subject, bodyText, status, errorMsg, now]);
+    for (const recipient of recipients) {
+      await dbExecute(`
+        INSERT INTO email_notifications (id, inquiry_id, recipient, subject, body, status, error_message, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [crypto.randomUUID(), booking.id, recipient, subject, bodyText, status, errorMsg, now]);
+    }
 
     if (status === 'sent') {
       await dbExecute('UPDATE inquiries SET email_sent = 1 WHERE id = ?', [booking.id]);
@@ -2222,23 +2245,39 @@ async function startServer() {
           'Origin': 'https://tuhfatalilm.online'
         },
         body: JSON.stringify({
-          _subject: `[Verification Test] Tuhfat Al-Ilm Academy Email Delivery`,
-          _cc: 'aneesattari67@gmail.com',
-          Message: `Assalamu Alaikum. This test email confirms admissions notifications from Tuhfat Al-Ilm Academy are successfully arriving at ${targetEmail}.`,
-          Timestamp: now
+          _subject: `[Verification Test] Tuhfat Al-Ilm Academy Email Delivery (${targetEmail})`,
+          _template: 'table',
+          _captcha: 'false',
+          'Recipient': targetEmail,
+          'Message': `Assalamu Alaikum. This test email confirms admissions notifications from Tuhfat Al-Ilm Academy are successfully arriving at ${targetEmail}.`,
+          'Timestamp': now
         })
       });
       const fsText = await fsRes.text();
-      let fsJson = null;
+      let fsJson: any = null;
       try { fsJson = JSON.parse(fsText); } catch {}
-      results.formsubmit = { status: fsRes.status, response: fsJson || fsText };
+      const isPendingActivation = Boolean(
+        fsJson?.message?.toLowerCase().includes('activation') ||
+        fsJson?.message?.toLowerCase().includes('activate')
+      );
+      results.formsubmit = {
+        status: fsRes.status,
+        ok: fsRes.ok,
+        needsActivation: isPendingActivation,
+        response: fsJson || fsText
+      };
     } catch (fsErr: any) {
       results.formsubmit = { error: fsErr.message };
     }
 
+    const isActivationNeeded = results.formsubmit?.needsActivation;
+
     res.json({
-      success: true,
-      message: 'Test email execution completed. See detailed channel results below.',
+      success: !isActivationNeeded,
+      needsActivation: isActivationNeeded,
+      message: isActivationNeeded
+        ? `FormSubmit activation required for ${targetEmail}: An activation email has been sent. Please open Gmail (check Primary & Spam folder) and click 'Activate Form' once to activate incoming emails.`
+        : 'Test email execution completed. See detailed channel results below.',
       diagnostics: results
     });
   });

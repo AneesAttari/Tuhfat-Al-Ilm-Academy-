@@ -142,36 +142,44 @@ export async function submitInquiryOrTrial(
   };
 
   const directEmailSync = async () => {
-    try {
-      await fetch('https://formsubmit.co/ajax/tuhfatalilmacademy@gmail.com', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          _subject: `New Free Trial Class Booking: ${record.name} (${record.course})`,
-          _cc: 'aneesattari67@gmail.com',
-          _template: 'table',
-          _captcha: 'false',
-          'Booking Reference ID': record.id,
-          'Student Name': record.name,
-          'Parent / Guardian': record.parent_name || 'N/A',
-          'Phone / WhatsApp': record.phone,
-          'Email Address': record.email || 'Not provided',
-          'Selected Course': record.course,
-          'Preferred Date': record.preferred_date || 'Flexible',
-          'Preferred Time': record.preferred_time || 'Flexible',
-          'Timezone': record.timezone || 'Not specified',
-          'Country': record.country || 'Not specified',
-          'Message / Notes': record.message || 'None',
-          'Submission Timestamp': record.created_at
-        }),
-        keepalive: true
-      });
-    } catch (e) {
-      console.info('Client-side email gateway dispatch note:', e);
-    }
+    const recipients = ['aneesattari67@gmail.com', 'tuhfatalilmacademy@gmail.com'];
+    const emailPayload = {
+      _subject: `New Free Trial Class Booking: ${record.name} (${record.course})`,
+      _template: 'table',
+      _captcha: 'false',
+      'Booking Reference ID': record.id,
+      'Student Name': record.name,
+      'Parent / Guardian': record.parent_name || 'N/A',
+      'Phone / WhatsApp': record.phone,
+      'Email Address': record.email || 'Not provided',
+      'Selected Course': record.course,
+      'Preferred Date': record.preferred_date || 'Flexible',
+      'Preferred Time': record.preferred_time || 'Flexible',
+      'Timezone': record.timezone || 'Not specified',
+      'Country': record.country || 'Not specified',
+      'Message / Notes': record.message || 'None',
+      'Submission Timestamp': record.created_at
+    };
+
+    await Promise.allSettled(
+      recipients.map(async (targetEmail) => {
+        try {
+          await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(targetEmail)}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Referer': 'https://tuhfatalilm.online',
+              'Origin': 'https://tuhfatalilm.online'
+            },
+            body: JSON.stringify(emailPayload),
+            keepalive: true
+          });
+        } catch (e) {
+          console.info(`Client-side email gateway dispatch note for ${targetEmail}:`, e);
+        }
+      })
+    );
   };
 
   // Run all sync operations concurrently with a 2500ms boundary

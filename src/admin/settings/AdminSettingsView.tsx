@@ -50,10 +50,11 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
   const [prefsMsg, setPrefsMsg] = useState<string | null>(null);
 
   // Live Email Verification & Diagnostic State
-  const [testEmailTarget, setTestEmailTarget] = useState('tuhfatalilmacademy@gmail.com');
+  const [testEmailTarget, setTestEmailTarget] = useState('aneesattari67@gmail.com');
   const [testingEmail, setTestingEmail] = useState(false);
   const [testEmailFeedback, setTestEmailFeedback] = useState<{
     success: boolean;
+    needsActivation?: boolean;
     message: string;
     details?: any;
   } | null>(null);
@@ -75,9 +76,18 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
       });
 
       if (result && result.diagnostics) {
+        const isPendingActivation = Boolean(
+          result.needsActivation ||
+          result.diagnostics?.formsubmit?.needsActivation ||
+          result.diagnostics?.formsubmit?.response?.message?.toLowerCase().includes('activation')
+        );
+
         setTestEmailFeedback({
-          success: result.success,
-          message: result.message || 'Test email dispatched. Review channel status below.',
+          success: result.success && !isPendingActivation,
+          needsActivation: isPendingActivation,
+          message: isPendingActivation
+            ? `Action Required: FormSubmit sent an activation email to ${cleanTarget}. Please check your Gmail (inbox and Spam / Junk / Promotions folders) and click the "Activate Form" button to allow incoming emails.`
+            : (result.message || 'Test email dispatched. Review channel status below.'),
           details: result.diagnostics
         });
         setTestingEmail(false);
@@ -94,20 +104,26 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ adminEmail
           'Origin': 'https://tuhfatalilm.online'
         },
         body: JSON.stringify({
-          _subject: `[Browser Test] Tuhfat Al-Ilm Academy Email Verification`,
-          _cc: 'aneesattari67@gmail.com',
+          _subject: `[Browser Test] Tuhfat Al-Ilm Academy Email Verification (${cleanTarget})`,
+          _template: 'table',
+          _captcha: 'false',
+          Recipient: cleanTarget,
           Message: `Assalamu Alaikum. This test email confirms admissions notifications from Tuhfat Al-Ilm Academy arrive directly at ${cleanTarget}.`,
           Timestamp: new Date().toISOString()
         })
       });
 
       const fsJson = await fsRes.json().catch(() => ({}));
-      const isPendingActivation = fsJson?.message?.includes('Activation') || fsJson?.message?.includes('Activate');
+      const isPendingActivation = Boolean(
+        fsJson?.message?.toLowerCase().includes('activation') ||
+        fsJson?.message?.toLowerCase().includes('activate')
+      );
 
       setTestEmailFeedback({
-        success: fsJson?.success === 'true' || fsJson?.success === true || isPendingActivation,
+        success: (fsJson?.success === 'true' || fsJson?.success === true) && !isPendingActivation,
+        needsActivation: isPendingActivation,
         message: isPendingActivation
-          ? 'FormSubmit has sent an activation link to your Gmail! Please open your Gmail (or Spam folder) and click "Activate Form" once to activate delivery.'
+          ? `Action Required: FormSubmit sent an activation link to ${cleanTarget}. Please open Gmail (check Inbox & Spam folder) and click "Activate Form" once to activate delivery.`
           : (fsJson?.message || 'Test notification dispatched successfully!'),
         details: { formsubmit: fsJson }
       });
