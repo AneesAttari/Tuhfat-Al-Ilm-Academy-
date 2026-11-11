@@ -385,65 +385,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* 2.5 INTERACTIVE 3D UNIVERSE PORTAL: "EXPLORE YOUR LEARNING JOURNEY" */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ScrollReveal direction="fade-up">
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#064E3B] via-[#043D2E] to-[#022C22] text-white p-6 sm:p-10 lg:p-12 border border-[#D9B44A]/40 shadow-2xl">
-            {/* Subtle Islamic Geometric Rosette in Background */}
-            <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-[#D9B44A]/10 blur-2xl pointer-events-none" aria-hidden="true" />
-            <div className="absolute right-6 bottom-4 opacity-10 pointer-events-none hidden md:block" aria-hidden="true">
-              <Compass className="w-64 h-64 text-[#D9B44A]" />
-            </div>
-
-            <div className="relative max-w-2xl space-y-4">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#FDE68A] uppercase tracking-wider">
-                <Compass className="w-4 h-4 text-[#D9B44A]" />
-                <span>Interactive 3D Experience</span>
-              </div>
-
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white leading-tight">
-                Explore Your Learning Journey in an Immersive 3D Garden
-              </h2>
-
-              <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-normal">
-                Step into a virtual architectural courtyard inspired by classical Islamic geometry. Tour 9 distinct course pavilions, interact with fountains and archways, and discover the personalized learning path suited to your family.
-              </p>
-
-              {/* Zero-Pill Features Strip */}
-              <div className="pt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#A7F3D0]">
-                <span>9 Interactive Pavilions</span>
-                <span aria-hidden="true" className="text-emerald-500">·</span>
-                <span>Day &amp; Peaceful Evening Modes</span>
-                <span aria-hidden="true" className="text-emerald-500">·</span>
-                <span>Smooth 3D Orbit &amp; Zoom</span>
-                <span aria-hidden="true" className="text-emerald-500">·</span>
-                <span>Direct Syllabus Discovery</span>
-              </div>
-
-              <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate('explore-journey')}
-                  className="btn-tactile inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-[#064E3B] bg-[#FDE68A] hover:bg-[#FCD34D] active:bg-[#F59E0B] shadow-lg transition-all cursor-pointer"
-                >
-                  <Compass className="w-4 h-4 text-[#064E3B]" />
-                  <span>Enter 3D Universe</span>
-                  <ArrowRight className="w-4 h-4 text-[#064E3B]" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleScrollToCourses}
-                  className="btn-tactile inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-sm font-semibold text-white/90 hover:text-white bg-white/10 hover:bg-white/15 border border-white/20 transition-all cursor-pointer"
-                >
-                  <span>Or Browse Standard Course Grid</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-      </section>
-
       {/* 3. FEATURED COURSES SHOWCASE: ACTUAL CURRICULUM PROGRAMS */}
       <section id="featured-courses" className="bg-white py-14 sm:py-16 border-y border-[#E5E2D9] scroll-mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
